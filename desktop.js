@@ -31,7 +31,7 @@ const COL = {
 };
 
 /* ==========================================================================
-   BLOCO 02: INICIALIZAÇÃO DIRETA E VALIDAÇÃO DE PORTARIA
+   BLOCO 02: INICIALIZAÇÃO DIRETA E VALIDAÇÃO DE PORTARIA (MODO TESTE)
    ========================================================================== */
 function iniciarApp() {
     executarFluxoEstrategico();
@@ -42,17 +42,10 @@ window.addEventListener('DOMContentLoaded', () => {
     executarFluxoEstrategico();
 });
 
-async function executarFluxoEstrategico() {
-    // 1. Verifica se a máquina já está liberada no histórico local
-    let tokenMaquina = localStorage.getItem('mrv_token_maquina');
+async function ejecutarFluxoEstrategico() {
+    console.log("Iniciando carregamento do painel...");
 
-    // Se NÃO veio com o token do gerente na URL E NUNCA entrou antes -> Corta o acesso imediatamente
-    if (!CODIGO_URL && !tokenMaquina) {
-        exibirTelaBloqueioNegado();
-        return; 
-    }
-
-    // 2. Se passou da barreira inicial ou tem o token, carrega a planilha IMEDIATAMENTE (Sem travar)
+    // Carrega os dados visuais da planilha normalmente
     try {
         await Promise.all([carregarPlanilha(), carregarAbaDocumentos()]);
         configurarBotaoDocumentos(); 
@@ -60,37 +53,27 @@ async function executarFluxoEstrategico() {
         console.error("Erro ao carregar dados iniciais: ", err);
     }
 
-    // 3. Processamento de registro em segundo plano (Não interfere no carregamento visual)
-    if (CODIGO_URL) {
-        const ultimoCodigoUsado = localStorage.getItem('mrv_ultimo_codigo_gerente');
-
-        if (!tokenMaquina || ultimoCodigoUsado !== CODIGO_URL) {
-            if (!tokenMaquina) {
-                tokenMaquina = 'maq_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
-                localStorage.setItem('mrv_token_maquina', tokenMaquina);
-            }
-            localStorage.setItem('mrv_ultimo_codigo_gerente', CODIGO_URL);
-            registrarAcessoNoGoogle(CODIGO_URL, tokenMaquina);
-        }
-    }
+    // DISPARO DE TESTE ABSOLUTO: Tenta gravar na planilha na hora
+    console.log("Disparando requisição de teste para o Apps Script...");
+    registrarAcessoNoGoogleTESTE();
 }
 
 /**
- * Envia os dados de acesso da máquina para o Google Apps Script gravar na planilha
+ * Função de teste limpo: chama a URL do Apps Script sem parâmetros complexos
  */
-async function registrarAcessoNoGoogle(codigo, token) {
-    if (!URL_WEB_APP_GOOGLE || URL_WEB_APP_GOOGLE.includes("COLE_AQUI")) return;
+async function registrarAcessoNoGoogleTESTE() {
+    if (!URL_WEB_APP_GOOGLE || URL_WEB_APP_GOOGLE.includes("COLE_AQUI")) {
+        console.error("URL do Web App não está configurada.");
+        return;
+    }
     try {
-        const infoDispositivo = navigator.userAgent;
-        const urlFinal = `${URL_WEB_APP_GOOGLE}?acao=registrar_maquina&gerente=${encodeURIComponent(codigo)}&fingerprint=${encodeURIComponent(token)}&dispositivo=${encodeURIComponent(infoDispositivo)}`;
-        
-        // Executa a requisição padrão via GET permitindo o processamento do Apps Script
-        const resposta = await fetch(urlFinal);
+        // Faz o fetch direto para a URL do script
+        const resposta = await fetch(URL_WEB_APP_GOOGLE);
         const resultado = await resposta.json();
         
-        console.log("Status do registro no Google Sheets:", resultado);
+        console.log("RESPOSTA DO GOOGLE SCRIPT:", resultado);
     } catch (e) {
-        console.error("Erro na comunicação de registro: ", e);
+        console.error("FALHA NA REQUISIÇÃO DE TESTE: ", e);
     }
 }
 
@@ -231,7 +214,7 @@ async function carregarAbaDocumentos() {
         const linhasPuras = texto.split(/\r?\n/);
 
         DOCUMENTOS_GERAIS = linhasPuras.slice(1).map(linha => {
-            // CORREÇÃO AQUI: Removemos o erro de escopo e inicialização precoce
+            // CORREÇÃO ESSENCIAL: Removida a atribuição cíclica que causava o ReferenceError
             let textoLinha = linha ? linha.trim() : "";
             if (!textoLinha) return null;
             
@@ -472,6 +455,10 @@ const extrairLinks = (campo, icone) => {
 function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
     const painel = document.getElementById('ficha-tecnica');
     if (!painel) return;
+    
+    // Limpa a vitrine completamente antes de renderizar para evitar vazamento de layout antigo
+    painel.innerHTML = "";
+
     const outros = listaDaCidade.filter(i => i.nome !== selecionado.nome);
     const urlMapsResidencial = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selecionado.endereco)}`;
     let html = ""; 
@@ -536,7 +523,7 @@ function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
         if (selecionado.tipologiasH) {
             const lines = selecionado.tipologiasH.split(';').map(l => l.trim()).filter(l => l !== "");
             lines.forEach(linhaStr => {
-                const colsArr = linhaStr.split(',').map(c => c.trim());
+                const colsArr = inlineStr = linhaStr.split(',').map(c => c.trim());
                 if (colsArr.length > 1 && colsArr[1] !== "" && colsArr[0].toLowerCase().includes("partir")) { precoReal = colsArr[1]; }
             });
         }
@@ -593,11 +580,12 @@ function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
             </div>`;
         }
     } else {
+        // AJUSTE DO COMPLEXO: Renderização limpa e isolada das variáveis residenciais
         let corComplexo = "#333";
         if (selecionado.zona === 'ZO') corComplexo = "#ff9d42"; 
         else if (selecionado.zona === 'ZL') corComplexo = "#003399";
         else if (selecionado.zona === 'ZN') corComplexo = "#ffd700";
-        else if (selecionado.zona === 'ZS') corComplexo = "#ff33aa";
+        else if (selecion==='ZS') corComplexo = "#ff33aa";
         let corTexto = (selecionado.zona === 'ZN') ? "#333" : "white";
 
         html += `<div class="titulo-vitrine-faixa" style="background-color: ${corComplexo}; color: ${corTexto}; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 5px; border-radius: 4px; font-size: 0.8rem;">
@@ -616,10 +604,10 @@ function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
                  </div>`;
                  
         let materiaisComplexo = extrairLinks(selecionado.linksImplant, '📍');
-        if (materialsComplexo !== "") { 
+        if (materiaisComplexo !== "") { 
             html += `<div style="margin-top: 10px; padding: 0 5px;">
                 <label style="display:block; font-size:0.6rem; font-weight:bold; color:#888; text-transform:uppercase; margin-bottom:4px; border-bottom:1px solid #eee;">MATERIAIS DO COMPLEXO</label>
-                ${materialsComplexo}
+                ${materiaisComplexo}
             </div>`;
         }
     }
