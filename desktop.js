@@ -67,13 +67,19 @@ async function registrarAcessoNoGoogleTESTE() {
         return;
     }
     try {
-        // Faz o fetch direto para a URL do script
-        const resposta = await fetch(URL_WEB_APP_GOOGLE);
-        const resultado = await resposta.json();
+        console.log("Disparando gravação via modo simplificado (no-cors)...");
         
-        console.log("RESPOSTA DO GOOGLE SCRIPT:", resultado);
+        // O segredo está no mode: 'no-cors'. Ele ignora as travas do navegador
+        // e força o envio dos dados cegamente para o Google Apps Script.
+        await fetch(URL_WEB_APP_GOOGLE, {
+            method: "GET",
+            mode: "no-cors",
+            cache: "no-cache"
+        });
+        
+        console.log("Sinal enviado com sucesso para o Google Script! Verifique a Planilha.");
     } catch (e) {
-        console.error("FALHA NA REQUISIÇÃO DE TESTE: ", e);
+        console.error("FALHA CRÍTICA NO DISPARO: ", e);
     }
 }
 
