@@ -231,16 +231,23 @@ async function carregarAbaDocumentos() {
         const linhasPuras = texto.split(/\r?\n/);
 
         DOCUMENTOS_GERAIS = linhasPuras.slice(1).map(linha => {
-            const inlineLimpa = inlineLimpa = linha.replace(/^"|"$/g, '').trim();
-            if (!inlineLimpa) return null;
+            // CORREÇÃO AQUI: Removemos o erro de escopo e inicialização precoce
+            let textoLinha = linha ? linha.trim() : "";
+            if (!textoLinha) return null;
+            
+            const inlineLimpa = textoLinha.replace(/^"|"$/g, '').trim();
             const ultimaVirgula = inlineLimpa.lastIndexOf(',');
             if (ultimaVirgula === -1) return null;
+            
             const titulo = inlineLimpa.substring(0, ultimaVirgula).trim().replace(/^"|"$/g, '');
             const url = inlineLimpa.substring(ultimaVirgula + 1).trim().replace(/^"|"$/g, '');
+            
             if (!titulo || !url.startsWith('http')) return null;
             return { titulo, url };
         }).filter(d => d !== null);
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+        console.error("Erro ao carregar aba de documentos: ", e); 
+    }
 }
 
 async function carregarPlanilha() {
