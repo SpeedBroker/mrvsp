@@ -1,5 +1,5 @@
 /* ==========================================================================
-   BLOCO 01: CONFIGURAÇÕES, VARIÁVEIS GLOBAIS E SEGURANÇA SILENCIOSA
+   BLOCO 01: CONFIGURAÇÕES, VARIÁVEIS GLOBAIS E LINK DO GOOGLE
    ========================================================================== */
 let DADOS_PLANILHA = [];
 let DOCUMENTOS_GERAIS = []; 
@@ -7,8 +7,8 @@ let pathAtivo = null;
 let imovelAtivo = null;  
 let mapaAtivo = 'GSP'; 
 
-// [PASSO MANUAL] -> Insira abaixo a sua URL de Deploy do Google Apps Script
-const URL_WEB_APP_GOOGLE = "https://script.google.com/macros/s/AKfycbzR7pS-Y6VdM8N_0z67UvP6B75p6g-Zf8g6A2p4v/exec"; 
+// URL de Execução (Deploy) do seu Google Apps Script atualizada
+const URL_WEB_APP_GOOGLE = "https://script.google.com/macros/s/AKfycbzFilsjEmRMeo1QJXIOX-0lUYtFeZKcMyvrebiSZu77P7r36vpmJe3WZSBdfQuzDms/exec"; 
 
 // Captura o código da URL (ex: ?gerente=a2b20)
 const urlParams = new URLSearchParams(window.location.search);
@@ -31,47 +31,47 @@ const COL = {
 };
 
 /* ==========================================================================
-   BLOCO 02: INICIALIZAÇÃO E FILTRO DE SEGURANÇA (ABORDAGEM 1)
+   BLOCO 02: INICIALIZAÇÃO DIRETA E VALIDAÇÃO DE PORTARIA
    ========================================================================== */
 function iniciarApp() {
-    controlarFluxoSeguranca();
+    executarFluxoEstrategico();
 }
 
-// Inicializador automático robusto
+// Executa automaticamente assim que o script carrega no navegador
 window.addEventListener('DOMContentLoaded', () => {
-    controlarFluxoSeguranca();
+    executarFluxoEstrategico();
 });
 
-async function controlarFluxoSeguranca() {
+async function executarFluxoEstrategico() {
+    // 1. Verifica se a máquina já está liberada no histórico local
+    let tokenMaquina = localStorage.getItem('mrv_token_maquina');
+
+    // Se NÃO veio com o token do gerente na URL E NUNCA entrou antes -> Corta o acesso imediatamente
+    if (!CODIGO_URL && !tokenMaquina) {
+        exibirTelaBloqueioNegado();
+        return; 
+    }
+
+    // 2. Se passou da barreira inicial ou tem o token, carrega a planilha IMEDIATAMENTE (Sem travar)
     try {
-        let tokenMaquina = localStorage.getItem('mrv_token_maquina');
-
-        // [CAMINHO 1] -> Se NÃO tem código no link E a máquina NUNCA entrou antes, bloqueia total!
-        if (!CODIGO_URL && !tokenMaquina) {
-            exibirTelaBloqueioNegado();
-            return;
-        }
-
-        // Se o usuário entrou usando um link de gerente (?gerente=...)
-        if (CODIGO_URL) {
-            const ultimoCodigoUsado = localStorage.getItem('mrv_ultimo_codigo_gerente');
-
-            if (!tokenMaquina || ultimoCodigoUsado !== CODIGO_URL) {
-                if (!tokenMaquina) {
-                    tokenMaquina = 'maq_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
-                    localStorage.setItem('mrv_token_maquina', tokenMaquina);
-                }
-                localStorage.setItem('mrv_ultimo_codigo_gerente', CODIGO_URL);
-                registrarAcessoNoGoogle(CODIGO_URL, tokenMaquina);
-            }
-        }
-
-        // Avança para carregar os dados se passou pela portaria
-        executarCargaDados();
-
+        await Promise.all([carregarPlanilha(), carregarAbaDocumentos()]);
+        configurarBotaoDocumentos(); 
     } catch (err) {
-        console.error("Erro no controlador de segurança: ", err);
-        executarCargaDados();
+        console.error("Erro ao carregar dados iniciais: ", err);
+    }
+
+    // 3. Processamento de registro em segundo plano (Não interfere no carregamento visual)
+    if (CODIGO_URL) {
+        const ultimoCodigoUsado = localStorage.getItem('mrv_ultimo_codigo_gerente');
+
+        if (!tokenMaquina || ultimoCodigoUsado !== CODIGO_URL) {
+            if (!tokenMaquina) {
+                tokenMaquina = 'maq_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+                localStorage.setItem('mrv_token_maquina', tokenMaquina);
+            }
+            localStorage.setItem('mrv_ultimo_codigo_gerente', CODIGO_URL);
+            registrarAcessoNoGoogle(CODIGO_URL, tokenMaquina);
+        }
     }
 }
 
@@ -82,7 +82,7 @@ async function registrarAcessoNoGoogle(codigo, token) {
         const urlFinal = `${URL_WEB_APP_GOOGLE}?acao=registrar_maquina&gerente=${encodeURIComponent(codigo)}&fingerprint=${encodeURIComponent(token)}&dispositivo=${encodeURIComponent(infoDispositivo)}`;
         fetch(urlFinal, { mode: 'no-cors' });
     } catch (e) {
-        console.error("Erro na comunicação com o banco de dados: ", e);
+        console.error("Erro na comunicação de registro: ", e);
     }
 }
 
@@ -102,15 +102,9 @@ function exibirTelaBloqueioNegado() {
     document.body.appendChild(painelBloqueio);
 }
 
-async function ejecutarCargaDados() {
-    try {
-        await Promise.all([carregarPlanilha(), carregarAbaDocumentos()]);
-        configurarBotaoDocumentos(); 
-    } catch (e) {
-        console.error("Erro geral na carga de dados da vitrine: ", e);
-    }
-}
-
+/* ==========================================================================
+   BLOCO 03: FUNÇÕES DE SUPORTE E COMPORTAMENTO DA INTERFACE
+   ========================================================================== */
 function configurarBotaoDocumentos() {
     const btnDocs = document.getElementById('btn-documentos');
     if (btnDocs) {
@@ -126,15 +120,21 @@ function configurarBotaoDocumentos() {
             const painel = document.getElementById('ficha-tecnica');
             if (painel) {
                 let htmlDocs = `<div style="padding: 10px 0;">`;
+
                 if (DOCUMENTOS_GERAIS.length === 0) {
-                    htmlDocs += `<div style="text-align:center; color:#999; margin-top:50px;"><p>Nenhum documento encontrado na aba.</p></div>`;
+                    htmlDocs += `
+                        <div style="text-align:center; color:#999; margin-top:50px;">
+                            <p>Nenhum documento encontrado na aba.</p>
+                        </div>`;
                 } else {
                     DOCUMENTOS_GERAIS.forEach(doc => {
                         htmlDocs += criarCardMaterial(doc.titulo, doc.url, '📝');
                     });
                 }
+
                 htmlDocs += `</div>`;
                 painel.innerHTML = htmlDocs;
+                
                 inicializarHoverMiniaturas();
             }
         });
@@ -212,7 +212,7 @@ function copiarTexto(texto, msg = "Link copiado!") {
 }
 
 /* ==========================================================================
-   BLOCO 03: CARREGAMENTO DE DADOS (GOOGLE SHEETS)
+   BLOCO 04: CARREGAMENTO DE DADOS (GOOGLE SHEETS)
    ========================================================================= */
 async function carregarAbaDocumentos() {
     const SHEET_ID = "15V194P2JPGCCPpCTKJsib8sJuCZPgtbNb-rtgNaLS7E";
@@ -296,13 +296,12 @@ async function carregarPlanilha() {
         }).filter(i => i !== null);
 
         DADOS_PLANILHA.sort((a, b) => a.ordem - b.ordem);
-        desenharMapas(); 
-        gerarListaLateral();
+        desenharMapas(); gerarListaLateral();
     } catch (e) { console.error(e); }
 }
 
 /* ==========================================================================
-   BLOCO 04: LÓGICA DO MAPA E SELEÇÃO
+   BLOCO 05: LÓGICA DO MAPA E SELEÇÃO
    ========================================================================== */
 function obterHtmlZona(zona, tipo) {
     if (tipo === 'N' || !zona || zona === "---") return "";
@@ -327,10 +326,8 @@ function navegarVitrine(nome) {
 
 function comandoSelecao(idPath, nomePath, fonte) {
     const idNorm = idPath.toLowerCase().replace(/\s/g, '');
-    
-    // Verificadores de segurança para evitar falhas se os objetos MAPA_ não existirem globalmente ainda
-    const noGSP = (typeof MAPA_GSP !== 'undefined') && MAPA_GSP.paths.some(p => p.id.toLowerCase().replace(/\s/g, '') === idNorm);
-    const noInterior = (typeof MAPA_INTERIOR !== 'undefined') && MAPA_INTERIOR.paths.some(p => p.id.toLowerCase().replace(/\s/g, '') === idNorm);
+    const noGSP = MAPA_GSP.paths.some(p => p.id.toLowerCase().replace(/\s/g, '') === idNorm);
+    const noInterior = MAPA_INTERIOR.paths.some(p => p.id.toLowerCase().replace(/\s/g, '') === idNorm);
     
     if (noGSP && mapaAtivo !== 'GSP') trocarMapas(false);
     if (noInterior && mapaAtivo !== 'INTERIOR') trocarMapas(false);
@@ -347,12 +344,8 @@ function comandoSelecao(idPath, nomePath, fonte) {
     if (elMapa) elMapa.classList.add('ativo');
 
     gerarListaLateral();
-    
-    let nomeOficial = pathAtivo;
-    if (typeof MAPA_GSP !== 'undefined' && typeof MAPA_INTERIOR !== 'undefined') {
-        const todosPaths = MAPA_GSP.paths.concat(MAPA_INTERIOR.paths);
-        nomeOficial = todosPaths.find(p => p.id.toLowerCase().replace(/\s/g, '') === pathAtivo)?.name || pathAtivo;
-    }
+    const todosPaths = MAPA_GSP.paths.concat(MAPA_INTERIOR.paths);
+    const nomeOficial = todosPaths.find(p => p.id.toLowerCase().replace(/\s/g, '') === pathAtivo)?.name || pathAtivo;
     
     atualizarTituloSuperior(nomeOficial);
     montarVitrine(selecionado, imoveisDaCidade, nomeOficial);
@@ -361,22 +354,18 @@ function comandoSelecao(idPath, nomePath, fonte) {
 function atualizarTituloSuperior(texto) {
     const titulo = document.getElementById('cidade-titulo');
     if (!titulo) return;
-    if (texto) { 
-        titulo.innerText = `MRV EM ${texto.toUpperCase()}`; 
-    } else if (pathAtivo && typeof MAPA_GSP !== 'undefined' && typeof MAPA_INTERIOR !== 'undefined') {
+    if (texto) { titulo.innerText = `MRV EM ${texto.toUpperCase()}`; } 
+    else if (pathAtivo) {
         const todosPaths = MAPA_GSP.paths.concat(MAPA_INTERIOR.paths);
         const nomeFixo = todosPaths.find(p => p.id.toLowerCase().replace(/\s/g, '') === pathAtivo)?.name || "";
         titulo.innerText = `MRV EM ${nomeFixo.toUpperCase()}`;
-    } else { 
-        titulo.innerText = "SELECIONE UMA REGIÃO NO MAPA"; 
-    }
+    } else { titulo.innerText = "SELECIONE UMA REGIÃO NO MAPA"; }
 }
 
 /* ==========================================================================
-   BLOCO 05: RENDERIZAÇÃO DOS MAPAS (SVG)
+   BLOCO 06: RENDERIZAÇÃO DOS MAPAS (SVG)
    ========================================================================== */
 function renderizarNoContainer(id, dados, interativo) {
-    if (!dados || !dados.paths) return; // Protege contra objetos indefinidos
     const container = document.getElementById(id);
     if (!container) return;
     container.style.display = "flex"; container.style.alignItems = "center";
@@ -404,11 +393,6 @@ function renderizarNoContainer(id, dados, interativo) {
 }
 
 function desenharMapas() {
-    // Certifica que os arquivos de mapas já existem antes de desenhar
-    if (typeof MAPA_GSP === 'undefined' || typeof MAPA_INTERIOR === 'undefined') {
-        console.warn("Aguardando carregamento das coordenadas dos mapas...");
-        return;
-    }
     renderizarNoContainer('caixa-a', (mapaAtivo === 'GSP') ? MAPA_GSP : MAPA_INTERIOR, true);
     renderizarNoContainer('caixa-b', (mapaAtivo === 'GSP') ? MAPA_INTERIOR : MAPA_GSP, false);
     const cb = document.getElementById('caixa-b');
@@ -428,15 +412,11 @@ function trocarMapas(completo) {
 }
 
 /* ==========================================================================
-   BLOCO 06: LISTA LATERAL
-   ========================================================================= */
+   BLOCO 07: LISTA LATERAL
+   ========================================================================== */
 function gerarListaLateral() {
     const container = document.getElementById('lista-imoveis');
     if (!container) return;
-    if (DADOS_PLANILHA.length === 0) {
-        container.innerHTML = `<div style="padding:10px; color:#999; font-size:11px;">Carregando residenciais...</div>`;
-        return;
-    }
     container.innerHTML = DADOS_PLANILHA.map(item => {
         const ativo = item.nome === imovelAtivo ? 'ativo' : '';
         const classeZona = detectarClasseZona(item.zona); 
@@ -447,7 +427,7 @@ function gerarListaLateral() {
 }
 
 /* ==========================================================================
-   BLOCO 07: CONSTRUÇÃO DA VITRINE (FICHA TÉCNICA)
+   BLOCO 08: CONSTRUÇÃO DA VITRINE (FICHA TÉCNICA)
    ========================================================================== */
 const criarCardMaterial = (titulo, url, icone) => {
     if (!url || url === "" || url === "---" || typeof url !== 'string') return "";
@@ -583,18 +563,18 @@ function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
         html += criarBoxDiferencial('🏥 Saúde e Educação', selecionado.saude, '#f3e5f5', '#6a1b9a', false);
         html += `</div>`;
 
-        let materiaisHtml = "";
-        materiaisHtml += criarCardMaterial('Book Cliente', selecionado.linkCliente, '📄');
-        materiaisHtml += criarCardMaterial('Book Corretor', selecionado.linkCorretor, '💼');
-        materiaisHtml += extrairLinks(selecionado.linksVideos, '🎬');
-        materiaisHtml += extrairLinks(selecionado.linksPlantas, '📐');
-        materiaisHtml += extrairLinks(selecionado.linksImplant, '📍');
-        materiaisHtml += extrairLinks(selecionado.linksDiversos, '✨');
+        let materialsHtml = "";
+        materialsHtml += criarCardMaterial('Book Cliente', selecionado.linkCliente, '📄');
+        materialsHtml += criarCardMaterial('Book Corretor', selecionado.linkCorretor, '💼');
+        materialsHtml += extrairLinks(selecionado.linksVideos, '🎬');
+        materialsHtml += extrairLinks(selecionado.linksPlantas, '📐');
+        materialsHtml += extrairLinks(selecionado.linksImplant, '📍');
+        materialsHtml += extrairLinks(selecionado.linksDiversos, '✨');
         
-        if (materiaisHtml !== "") {
+        if (materialsHtml !== "") {
             html += `<div style="margin-top: 10px;">
                 <label style="display:block; font-size:0.6rem; font-weight:bold; color:#888; text-transform:uppercase; margin-bottom:4px; border-bottom:1px solid #eee;">MATERIAIS DE APOIO</label>
-                ${materiaisHtml}
+                ${materialsHtml}
             </div>`;
         }
     } else {
@@ -621,10 +601,10 @@ function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
                  </div>`;
                  
         let materiaisComplexo = extrairLinks(selecionado.linksImplant, '📍');
-        if (materiaisComplexo !== "") { 
+        if (materialsComplexo !== "") { 
             html += `<div style="margin-top: 10px; padding: 0 5px;">
                 <label style="display:block; font-size:0.6rem; font-weight:bold; color:#888; text-transform:uppercase; margin-bottom:4px; border-bottom:1px solid #eee;">MATERIAIS DO COMPLEXO</label>
-                ${materiaisComplexo}
+                ${materialsComplexo}
             </div>`;
         }
     }
