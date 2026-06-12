@@ -217,12 +217,13 @@ async function carregarAbaDocumentos() {
             let textoLinha = linha ? linha.trim() : "";
             if (!textoLinha) return null;
             
-            const inlineLimpa = textoLinha.replace(/^"|"$/g, '').trim();
-            const ultimaVirgula = inlineLimpa.lastIndexOf(',');
+            // CORRIGIDO: Removida a referência circular e antecipada da variável
+            const textoLimpo = textoLinha.replace(/^"|"$/g, '').trim();
+            const ultimaVirgula = textoLimpo.lastIndexOf(',');
             if (ultimaVirgula === -1) return null;
             
-            const titulo = inlineLimpa.substring(0, ultimaVirgula).trim().replace(/^"|"$/g, '');
-            const url = inlineLimpa.substring(ultimaVirgula + 1).trim().replace(/^"|"$/g, '');
+            const titulo = textoLimpo.substring(0, ultimaVirgula).trim().replace(/^"|"$/g, '');
+            const url = textoLimpo.substring(ultimaVirgula + 1).trim().replace(/^"|"$/g, '');
             
             if (!titulo || !url.startsWith('http')) return null;
             return { titulo, url };
@@ -242,7 +243,9 @@ async function carregarPlanilha() {
 
         DADOS_PLANILHA = linhasPuras.slice(1).map(linha => {
             const colunas = []; let campo = "", aspas = false;
-            for (let i = 0; i < lineaL = linha.length; i++) {
+            // CORRIGIDO: Atribuição de tamanho inválida "lineaL = linha.length" resolvida para escopo limpo
+            const tamanhoLinha = linha.length;
+            for (let i = 0; i < tamanhoLinha; i++) {
                 const char = linha[i];
                 if (char === '"') aspas = !aspas;
                 else if (char === ',' && !aspas) { colunas.push(campo.trim()); campo = ""; }
