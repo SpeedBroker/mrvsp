@@ -75,12 +75,20 @@ async function executarFluxoEstrategico() {
     }
 }
 
+/**
+ * Envia os dados de acesso da máquina para o Google Apps Script gravar na planilha
+ */
 async function registrarAcessoNoGoogle(codigo, token) {
     if (!URL_WEB_APP_GOOGLE || URL_WEB_APP_GOOGLE.includes("COLE_AQUI")) return;
     try {
         const infoDispositivo = navigator.userAgent;
         const urlFinal = `${URL_WEB_APP_GOOGLE}?acao=registrar_maquina&gerente=${encodeURIComponent(codigo)}&fingerprint=${encodeURIComponent(token)}&dispositivo=${encodeURIComponent(infoDispositivo)}`;
-        fetch(urlFinal, { mode: 'no-cors' });
+        
+        // Executa a requisição padrão via GET permitindo o processamento do Apps Script
+        const resposta = await fetch(urlFinal);
+        const resultado = await resposta.json();
+        
+        console.log("Status do registro no Google Sheets:", resultado);
     } catch (e) {
         console.error("Erro na comunicação de registro: ", e);
     }
@@ -223,7 +231,7 @@ async function carregarAbaDocumentos() {
         const linhasPuras = texto.split(/\r?\n/);
 
         DOCUMENTOS_GERAIS = linhasPuras.slice(1).map(linha => {
-            const inlineLimpa = linha.replace(/^"|"$/g, '').trim();
+            const inlineLimpa = inlineLimpa = linha.replace(/^"|"$/g, '').trim();
             if (!inlineLimpa) return null;
             const ultimaVirgula = inlineLimpa.lastIndexOf(',');
             if (ultimaVirgula === -1) return null;
