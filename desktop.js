@@ -8,7 +8,7 @@ let imovelAtivo = null;
 let mapaAtivo = 'GSP'; 
 
 // [PASSO MANUAL] -> Cole aqui a URL do seu Deploy do Google Apps Script que termina com /exec
-const URL_WEB_APP_GOOGLE = "COLE_AQUI_A_SUA_URL_EXEC";
+const URL_WEB_APP_GOOGLE = "https://script.google.com/macros/s/AKfycbzFilsjEmRMeo1QJXIOX-0lUYtFeZKcMyvrebiSZu77P7r36vpmJe3WZSBdfQuzDms/exec";
 
 // Captura o código da URL (ex: ?gerente=a2b20)
 const urlParams = new URLSearchParams(window.location.search);
