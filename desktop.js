@@ -42,7 +42,7 @@ window.addEventListener('DOMContentLoaded', () => {
     executarFluxoEstrategico();
 });
 
-async function ejecutarFluxoEstrategico() {
+async function executarFluxoEstrategico() {
     console.log("Iniciando carregamento do painel...");
 
     // Carrega os dados visuais da planilha normalmente
@@ -214,7 +214,6 @@ async function carregarAbaDocumentos() {
         const linhasPuras = texto.split(/\r?\n/);
 
         DOCUMENTOS_GERAIS = linhasPuras.slice(1).map(linha => {
-            // CORREÇÃO ESSENCIAL: Removida a atribuição cíclica que causava o ReferenceError
             let textoLinha = linha ? linha.trim() : "";
             if (!textoLinha) return null;
             
@@ -243,7 +242,7 @@ async function carregarPlanilha() {
 
         DADOS_PLANILHA = linhasPuras.slice(1).map(linha => {
             const colunas = []; let campo = "", aspas = false;
-            for (let i = 0; i < linha.length; i++) {
+            for (let i = 0; i < lineaL = linha.length; i++) {
                 const char = linha[i];
                 if (char === '"') aspas = !aspas;
                 else if (char === ',' && !aspas) { colunas.push(campo.trim()); campo = ""; }
@@ -456,7 +455,6 @@ function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
     const painel = document.getElementById('ficha-tecnica');
     if (!painel) return;
     
-    // Limpa a vitrine completamente antes de renderizar para evitar vazamento de layout antigo
     painel.innerHTML = "";
 
     const outros = listaDaCidade.filter(i => i.nome !== selecionado.nome);
@@ -523,7 +521,7 @@ function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
         if (selecionado.tipologiasH) {
             const lines = selecionado.tipologiasH.split(';').map(l => l.trim()).filter(l => l !== "");
             lines.forEach(linhaStr => {
-                const colsArr = inlineStr = linhaStr.split(',').map(c => c.trim());
+                const colsArr = linhaStr.split(',').map(c => c.trim());
                 if (colsArr.length > 1 && colsArr[1] !== "" && colsArr[0].toLowerCase().includes("partir")) { precoReal = colsArr[1]; }
             });
         }
@@ -580,13 +578,16 @@ function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
             </div>`;
         }
     } else {
-        // AJUSTE DO COMPLEXO: Renderização limpa e isolada das variáveis residenciais
-        let corComplexo = "#333";
-        if (selecionado.zona === 'ZO') corComplexo = "#ff9d42"; 
-        else if (selecionado.zona === 'ZL') corComplexo = "#003399";
-        else if (selecionado.zona === 'ZN') corComplexo = "#ffd700";
-        else if (selecion==='ZS') corComplexo = "#ff33aa";
-        let corTexto = (selecionado.zona === 'ZN') ? "#333" : "white";
+        // CORREÇÃO DOS COMPLEXOS: Variável e sintaxe corrigidas perfeitamente
+        let corComplexo = "#333333";
+        const zUpper = selecionado.zona ? selecionado.zona.toUpperCase().trim() : "";
+        
+        if (zUpper.includes('ZO')) corComplexo = "#ff9d42"; 
+        else if (zUpper.includes('ZL')) corComplexo = "#003399";
+        else if (zUpper.includes('ZN')) corComplexo = "#ffd700";
+        else if (zUpper.includes('ZS')) corComplexo = "#ff33aa";
+        
+        let corTexto = zUpper.includes('ZN') ? "#333333" : "#ffffff";
 
         html += `<div class="titulo-vitrine-faixa" style="background-color: ${corComplexo}; color: ${corTexto}; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 5px; border-radius: 4px; font-size: 0.8rem;">
                     ${selecionado.nomeFull.toUpperCase()} — ${selecionado.regiao}
@@ -597,7 +598,7 @@ function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
                         <span>📍 ${selecionado.endereco}</span> 
                         <span style="display:flex; gap:3px;">
                             <a href="${urlMapsResidencial}" target="_blank" class="btn-maps">MAPS</a>
-                            <button onclick="copiarTexto('${urlMapsResidencial}', 'Link de localização copiado!')" class="btn-maps" style="border:none; cursor:pointer;">LINK</button>
+                            <button onclick="copyTexto('${urlMapsResidencial}', 'Link de localização copiado!')" class="btn-maps" style="border:none; cursor:pointer;">LINK</button>
                         </span>
                     </p>
                     <div style="font-size:0.75rem; color:#444; line-height:1.5; text-align:justify;">${selecionado.descLonga}</div>
