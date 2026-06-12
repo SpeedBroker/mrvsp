@@ -7,8 +7,8 @@ let pathAtivo = null;
 let imovelAtivo = null;  
 let mapaAtivo = 'GSP'; 
 
-// [PASSO MANUAL] -> Cole aqui a URL do seu Deploy do Google Apps Script que termina com /exec
-const URL_WEB_APP_GOOGLE = "https://script.google.com/macros/s/AKfycbzFilsjEmRMeo1QJXIOX-0lUYtFeZKcMyvrebiSZu77P7r36vpmJe3WZSBdfQuzDms/exec";
+// [PASSO MANUAL] -> Insira abaixo a sua URL de Deploy do Google Apps Script
+const URL_WEB_APP_GOOGLE = "https://script.google.com/macros/s/AKfycbzR7pS-Y6VdM8N_0z67UvP6B75p6g-Zf8g6A2p4v/exec"; 
 
 // Captura o código da URL (ex: ?gerente=a2b20)
 const urlParams = new URLSearchParams(window.location.search);
@@ -33,21 +33,17 @@ const COL = {
 /* ==========================================================================
    BLOCO 02: INICIALIZAÇÃO E FILTRO DE SEGURANÇA (ABORDAGEM 1)
    ========================================================================== */
-// Função que o seu HTML chama ao carregar a página
 function iniciarApp() {
     controlarFluxoSeguranca();
 }
 
-// Alternativa caso o HTML não chame a função diretamente
+// Inicializador automático robusto
 window.addEventListener('DOMContentLoaded', () => {
-    if (DADOS_PLANILHA.length === 0) {
-        controlarFluxoSeguranca();
-    }
+    controlarFluxoSeguranca();
 });
 
 async function controlarFluxoSeguranca() {
     try {
-        // 1. Tenta pegar a máquina salva na memória local do navegador
         let tokenMaquina = localStorage.getItem('mrv_token_maquina');
 
         // [CAMINHO 1] -> Se NÃO tem código no link E a máquina NUNCA entrou antes, bloqueia total!
@@ -56,53 +52,40 @@ async function controlarFluxoSeguranca() {
             return;
         }
 
-        // 2. Se o usuário entrou usando um link de gerente (?gerente=...)
+        // Se o usuário entrou usando um link de gerente (?gerente=...)
         if (CODIGO_URL) {
             const ultimoCodigoUsado = localStorage.getItem('mrv_ultimo_codigo_gerente');
 
-            // Se for uma máquina nova ou se o gerente/mês mudou na URL, faz o registro
             if (!tokenMaquina || ultimoCodigoUsado !== CODIGO_URL) {
-                
-                // Se a máquina não tem token nenhum, cria um ID exclusivo para ela agora
                 if (!tokenMaquina) {
                     tokenMaquina = 'maq_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
                     localStorage.setItem('mrv_token_maquina', tokenMaquina);
                 }
-
-                // Salva o código atual para evitar disparos repetidos nas próximas atualizações de página
                 localStorage.setItem('mrv_ultimo_codigo_gerente', CODIGO_URL);
-
-                // Registra a nova máquina silenciosamente na planilha do Google
-                await registrarAcessoNoGoogle(CODIGO_URL, tokenMaquina);
+                registrarAcessoNoGoogle(CODIGO_URL, tokenMaquina);
             }
         }
 
-        // Se passou em todas as regras, carrega os mapas e dados normalmente
+        // Avança para carregar os dados se passou pela portaria
         executarCargaDados();
 
     } catch (err) {
         console.error("Erro no controlador de segurança: ", err);
-        // Em caso de falha de rede extrema, permite carregar para não travar a equipe
         executarCargaDados();
     }
 }
 
-// Envia a requisição via GET usando JSONP/CORS amigável para o Apps Script
 async function registrarAcessoNoGoogle(codigo, token) {
-    if (URL_WEB_APP_GOOGLE.includes("COLE_AQUI_A_SUA_URL_EXEC")) return;
-    
+    if (!URL_WEB_APP_GOOGLE || URL_WEB_APP_GOOGLE.includes("COLE_AQUI")) return;
     try {
         const infoDispositivo = navigator.userAgent;
         const urlFinal = `${URL_WEB_APP_GOOGLE}?acao=registrar_maquina&gerente=${encodeURIComponent(codigo)}&fingerprint=${encodeURIComponent(token)}&dispositivo=${encodeURIComponent(infoDispositivo)}`;
-        
-        // Disparo em segundo plano (O corretor nem percebe)
         fetch(urlFinal, { mode: 'no-cors' });
     } catch (e) {
         console.error("Erro na comunicação com o banco de dados: ", e);
     }
 }
 
-// Renderiza a interface de proteção caso acessem a URL crua sem autorização
 function exibirTelaBloqueioNegado() {
     const painelBloqueio = document.createElement('div');
     painelBloqueio.id = 'tela-bloqueio-seguranca';
@@ -120,8 +103,12 @@ function exibirTelaBloqueioNegado() {
 }
 
 async function ejecutarCargaDados() {
-    await Promise.all([carregarPlanilha(), carregarAbaDocumentos()]);
-    configurarBotaoDocumentos(); 
+    try {
+        await Promise.all([carregarPlanilha(), carregarAbaDocumentos()]);
+        configurarBotaoDocumentos(); 
+    } catch (e) {
+        console.error("Erro geral na carga de dados da vitrine: ", e);
+    }
 }
 
 function configurarBotaoDocumentos() {
@@ -139,21 +126,15 @@ function configurarBotaoDocumentos() {
             const painel = document.getElementById('ficha-tecnica');
             if (painel) {
                 let htmlDocs = `<div style="padding: 10px 0;">`;
-
                 if (DOCUMENTOS_GERAIS.length === 0) {
-                    htmlDocs += `
-                        <div style="text-align:center; color:#999; margin-top:50px;">
-                            <p>Nenhum documento encontrado na aba.</p>
-                        </div>`;
+                    htmlDocs += `<div style="text-align:center; color:#999; margin-top:50px;"><p>Nenhum documento encontrado na aba.</p></div>`;
                 } else {
                     DOCUMENTOS_GERAIS.forEach(doc => {
                         htmlDocs += criarCardMaterial(doc.titulo, doc.url, '📝');
                     });
                 }
-
                 htmlDocs += `</div>`;
                 painel.innerHTML = htmlDocs;
-                
                 inicializarHoverMiniaturas();
             }
         });
@@ -315,7 +296,8 @@ async function carregarPlanilha() {
         }).filter(i => i !== null);
 
         DADOS_PLANILHA.sort((a, b) => a.ordem - b.ordem);
-        desenharMapas(); gerarListaLateral();
+        desenharMapas(); 
+        gerarListaLateral();
     } catch (e) { console.error(e); }
 }
 
@@ -345,8 +327,10 @@ function navegarVitrine(nome) {
 
 function comandoSelecao(idPath, nomePath, fonte) {
     const idNorm = idPath.toLowerCase().replace(/\s/g, '');
-    const noGSP = MAPA_GSP.paths.some(p => p.id.toLowerCase().replace(/\s/g, '') === idNorm);
-    const noInterior = MAPA_INTERIOR.paths.some(p => p.id.toLowerCase().replace(/\s/g, '') === idNorm);
+    
+    // Verificadores de segurança para evitar falhas se os objetos MAPA_ não existirem globalmente ainda
+    const noGSP = (typeof MAPA_GSP !== 'undefined') && MAPA_GSP.paths.some(p => p.id.toLowerCase().replace(/\s/g, '') === idNorm);
+    const noInterior = (typeof MAPA_INTERIOR !== 'undefined') && MAPA_INTERIOR.paths.some(p => p.id.toLowerCase().replace(/\s/g, '') === idNorm);
     
     if (noGSP && mapaAtivo !== 'GSP') trocarMapas(false);
     if (noInterior && mapaAtivo !== 'INTERIOR') trocarMapas(false);
@@ -363,8 +347,12 @@ function comandoSelecao(idPath, nomePath, fonte) {
     if (elMapa) elMapa.classList.add('ativo');
 
     gerarListaLateral();
-    const todosPaths = MAPA_GSP.paths.concat(MAPA_INTERIOR.paths);
-    const nomeOficial = todosPaths.find(p => p.id.toLowerCase().replace(/\s/g, '') === pathAtivo)?.name || pathAtivo;
+    
+    let nomeOficial = pathAtivo;
+    if (typeof MAPA_GSP !== 'undefined' && typeof MAPA_INTERIOR !== 'undefined') {
+        const todosPaths = MAPA_GSP.paths.concat(MAPA_INTERIOR.paths);
+        nomeOficial = todosPaths.find(p => p.id.toLowerCase().replace(/\s/g, '') === pathAtivo)?.name || pathAtivo;
+    }
     
     atualizarTituloSuperior(nomeOficial);
     montarVitrine(selecionado, imoveisDaCidade, nomeOficial);
@@ -373,18 +361,22 @@ function comandoSelecao(idPath, nomePath, fonte) {
 function atualizarTituloSuperior(texto) {
     const titulo = document.getElementById('cidade-titulo');
     if (!titulo) return;
-    if (texto) { titulo.innerText = `MRV EM ${texto.toUpperCase()}`; } 
-    else if (pathAtivo) {
+    if (texto) { 
+        titulo.innerText = `MRV EM ${texto.toUpperCase()}`; 
+    } else if (pathAtivo && typeof MAPA_GSP !== 'undefined' && typeof MAPA_INTERIOR !== 'undefined') {
         const todosPaths = MAPA_GSP.paths.concat(MAPA_INTERIOR.paths);
         const nomeFixo = todosPaths.find(p => p.id.toLowerCase().replace(/\s/g, '') === pathAtivo)?.name || "";
         titulo.innerText = `MRV EM ${nomeFixo.toUpperCase()}`;
-    } else { titulo.innerText = "SELECIONE UMA REGIÃO NO MAPA"; }
+    } else { 
+        titulo.innerText = "SELECIONE UMA REGIÃO NO MAPA"; 
+    }
 }
 
 /* ==========================================================================
    BLOCO 05: RENDERIZAÇÃO DOS MAPAS (SVG)
    ========================================================================== */
 function renderizarNoContainer(id, dados, interativo) {
+    if (!dados || !dados.paths) return; // Protege contra objetos indefinidos
     const container = document.getElementById(id);
     if (!container) return;
     container.style.display = "flex"; container.style.alignItems = "center";
@@ -412,6 +404,11 @@ function renderizarNoContainer(id, dados, interativo) {
 }
 
 function desenharMapas() {
+    // Certifica que os arquivos de mapas já existem antes de desenhar
+    if (typeof MAPA_GSP === 'undefined' || typeof MAPA_INTERIOR === 'undefined') {
+        console.warn("Aguardando carregamento das coordenadas dos mapas...");
+        return;
+    }
     renderizarNoContainer('caixa-a', (mapaAtivo === 'GSP') ? MAPA_GSP : MAPA_INTERIOR, true);
     renderizarNoContainer('caixa-b', (mapaAtivo === 'GSP') ? MAPA_INTERIOR : MAPA_GSP, false);
     const cb = document.getElementById('caixa-b');
@@ -436,6 +433,10 @@ function trocarMapas(completo) {
 function gerarListaLateral() {
     const container = document.getElementById('lista-imoveis');
     if (!container) return;
+    if (DADOS_PLANILHA.length === 0) {
+        container.innerHTML = `<div style="padding:10px; color:#999; font-size:11px;">Carregando residenciais...</div>`;
+        return;
+    }
     container.innerHTML = DADOS_PLANILHA.map(item => {
         const ativo = item.nome === imovelAtivo ? 'ativo' : '';
         const classeZona = detectarClasseZona(item.zona); 
