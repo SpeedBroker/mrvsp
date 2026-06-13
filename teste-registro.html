@@ -107,52 +107,53 @@
         const urlParams = new URLSearchParams(window.location.search);
         const codigoGerente = urlParams.get('gerente') ? urlParams.get('gerente').trim() : "TESTE_DIRETO";
 
-        async function processarPortariaAcesso() {
-            const statusTexto = document.getElementById('status-texto');
-            const erroTexto = document.getElementById('erro-texto');
-            const sucessoTexto = document.getElementById('sucesso-texto');
-            const loader = document.getElementById('loader-sinal');
+async function processarPortariaAcesso() {
+    const statusTexto = document.getElementById('status-texto');
+    const erroTexto = document.getElementById('erro-texto');
+    const sucessoTexto = document.getElementById('sucesso-texto');
+    const loader = document.getElementById('loader-sinal');
 
-            const urlFinalDisparo = `${URL_WEB_APP_GOOGLE}?gerente=${encodeURIComponent(codigoGerente)}&acao=login&_ts=${new Date().getTime()}`;
+    // Monta os parâmetros para enviar ao Google Apps Script
+    const urlFinalDisparo = `${URL_WEB_APP_GOOGLE}?gerente=${encodeURIComponent(codigoGerente)}&acao=login&_ts=${new Date().getTime()}`;
 
-            try {
-                statusTexto.innerText = "Enviando sinal e aguardando handshake do Google...";
-                
-                // Forçamos o modo padrão (com CORS ativo) para ler o que o Google vai responder
-                const resposta = await fetch(urlFinalDisparo, {
-                    method: "GET"
-                });
+    try {
+        statusTexto.innerText = "Disparando sinal para a planilha (modo blindado)...";
+        
+        // CORRIGIDO: Adicionado o modo 'no-cors' para desarmar o bloqueio de segurança do navegador
+        await fetch(urlFinalDisparo, {
+            method: "GET",
+            mode: "no-cors",
+            cache: "no-cache"
+        });
 
-                const respostaTexto = await resposta.text();
-                console.log("Resposta bruta do Google:", respostaTexto);
+        // Como o modo 'no-cors' impede a leitura da resposta por segurança, 
+        // confirmamos que o navegador efetuou o envio com sucesso na rede.
+        loader.style.display = "none";
+        statusTexto.innerText = "Sinal transmitido com sucesso!";
+        statusTexto.style.color = "#38a169";
+        
+        sucessoTexto.innerHTML = `
+            <strong>O sinal de teste foi enviado para o servidor!</strong><br><br>
+            O navegador conseguiu contornar o bloqueio de segurança e despachou as informações do gerente 
+            <code>"${codigoGerente}"</code> para o Google Apps Script.<br><br>
+            👉 <strong>Abra a sua Planilha Google agora mesmo</strong> e verifique se a linha com a data de hoje foi adicionada no final da aba de logs!
+        `;
+        sucessoTexto.style.display = "block";
 
-                loader.style.display = "none";
-
-                if (resposta.ok) {
-                    statusTexto.innerText = "Comunicação efetuada!";
-                    statusTexto.style.color = "#38a169";
-                    sucessoTexto.innerHTML = `<strong>O servidor respondeu com sucesso!</strong><br><br>Retorno do script: <em>"${respostaTexto}"</em><br><br><span style="color:#718096;">Se a linha ainda não apareceu na planilha, o erro está 100% dentro da lógica interna do seu arquivo .gs do Google (como o nome da aba errado ou falta de permissão).</span>`;
-                    sucessoTexto.style.display = "block";
-                } else {
-                    throw new Error(`Código de erro HTTP: ${resposta.status}`);
-                }
-
-            } catch (erro) {
-                console.error("Erro capturado na portaria:", erro);
-                loader.style.display = "none";
-                statusTexto.innerText = "Falha na conexão de teste.";
-                statusTexto.style.color = "#e53e3e";
-                
-                erroTexto.innerHTML = `
-                    <strong>Erro de Bloqueio detectado!</strong><br>
-                    O navegador não conseguiu validar a gravação.<br><br>
-                    <strong>Detalhes técnicos do erro:</strong><br>
-                    ${erro.message || erro}<br><br>
-                    <em>Nota: Se aparecer "Failed to fetch", significa que o Google Script retornou um erro interno de segurança (CORS) ou o Deploy não está configurado para "Qualquer Pessoa".</em>
-                `;
-                erroTexto.style.display = "block";
-            }
-        }
+    } catch (erro) {
+        console.error("Erro capturado na portaria:", erro);
+        loader.style.display = "none";
+        statusTexto.innerText = "Falha crítica no disparo.";
+        statusTexto.style.color = "#e53e3e";
+        
+        erroTexto.innerHTML = `
+            <strong>Erro na transmissão:</strong><br>
+            ${erro.message || erro}<br><br>
+            Verifique a sua ligação à internet ou se a URL do Script está correta.
+        `;
+        erroTexto.style.display = "block";
+    }
+}
 
         window.addEventListener('DOMContentLoaded', processarPortariaAcesso);
     </script>
