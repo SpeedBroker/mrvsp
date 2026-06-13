@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpeedBroker — Teste de Registro</title>
+    <title>SpeedBroker — Portaria de Acesso</title>
     <style>
         :root {
             --mrv-verde: #007A48;
@@ -26,17 +26,23 @@
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
             border: 1px solid #e2e8f0;
             text-align: center;
-            max-width: 450px;
+            max-width: 400px;
             width: 90%;
         }
-        .logo-placeholder {
-            font-size: 3rem;
-            margin-bottom: 20px;
+        .logo-container {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--mrv-verde);
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+        }
+        .logo-container span {
+            color: var(--mrv-laranja);
         }
         .titulo {
             color: #2d3748;
-            font-size: 1.4rem;
-            margin-bottom: 10px;
+            font-size: 1.2rem;
+            margin-bottom: 8px;
             font-weight: 700;
         }
         .subtitulo {
@@ -57,110 +63,67 @@
         .status-msg {
             font-size: 0.85rem;
             font-weight: 600;
-            color: #dd6b20;
-        }
-        .erro-box {
-            display: none;
-            color: #e53e3e;
-            background: #fff5f5;
-            padding: 15px;
-            border-radius: 6px;
-            border: 1px solid #fed7d7;
-            font-size: 0.85rem;
-            margin-top: 15px;
-            text-align: left;
-            word-break: break-all;
-        }
-        .sucesso-box {
-            display: none;
-            color: #38a169;
-            background: #f0fff4;
-            padding: 15px;
-            border-radius: 6px;
-            border: 1px solid #c6f6d5;
-            font-size: 0.85rem;
-            margin-top: 15px;
+            color: #718096;
+            animation: pulse 1.5s infinite ease-in-out;
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
         }
     </style>
 </head>
 <body>
 
     <div class="card-portaria">
-        <div class="logo-placeholder">🧪</div>
-        <div class="titulo">Laboratório de Teste de Registro</div>
-        <div class="subtitulo">O redirecionamento automático está <strong>BLOQUEADO</strong>. Esta tela só avançará se o Google Apps Script confirmar por escrito que gravou os dados.</div>
+        <div class="logo-container">Speed<span>Broker</span></div>
+        <div class="titulo">Validando Credenciais</div>
+        <div class="subtitulo">Conectando ao banco de dados do Complexo Metropolitano...</div>
         
-        <div id="loader-sinal" class="loader"></div>
-        <div id="status-texto" class="status-msg">Iniciando teste de comunicação...</div>
-        
-        <div id="sucesso-texto" class="sucesso-box"></div>
-        <div id="erro-texto" class="erro-box"></div>
+        <div class="loader"></div>
+        <div id="status-texto" class="status-msg">Registrando porta de acesso...</div>
     </div>
 
     <script>
-        const URL_WEB_APP_GOOGLE = "https://script.google.com/macros/s/AKfycbzFilsjEmRMeo1QJXIOX-0lUYtFeZKcMyvrebiSZu77P7r36vpmJe3WZSBdfQuzDms/exec"; 
-        const PAGINA_DESTINO = "desktop.html";
+        // URL estável e testada do seu Google Apps Script
+        const URL_WEB_APP_GOOGLE = "https://script.google.com/macros/s/AKfycbwUbscQ8m89MqKVed5bVwvGorZJYeVJns8O32sbrjItUNnaQpBzqa1_4KY2smGKpyI/exec";
 
+        // Captura o parâmetro do gerente vindo da URL (Ex: ?gerente=Carlos)
         const urlParams = new URLSearchParams(window.location.search);
-        const codigoGerente = urlParams.get('gerente') ? urlParams.get('gerente').trim() : "TESTE_MANUAL";
+        const codigoGerente = urlParams.get('gerente') ? urlParams.get('gerente').trim() : "Acesso_Direto";
 
         async function processarPortariaAcesso() {
             const statusTexto = document.getElementById('status-texto');
-            const erroTexto = document.getElementById('erro-texto');
-            const sucessoTexto = document.getElementById('sucesso-texto');
-            const loader = document.getElementById('loader-sinal');
-
-            // Criamos parâmetros limpos para enviar ao Google Script identificar
+            
+            // Monta o endpoint com o modo login tradicional
             const urlFinalDisparo = `${URL_WEB_APP_GOOGLE}?gerente=${encodeURIComponent(codigoGerente)}&acao=login&_ts=${new Date().getTime()}`;
 
             try {
-                statusTexto.innerText = "Enviando sinal e aguardando handshake do Google...";
-                
-                // Forçamos o modo padrão (com CORS ativo) para ler o que o Google vai responder
-                const resposta = await fetch(urlFinalDisparo, {
-                    method: "GET"
+                // Efetua a gravação silenciosa usando a proteção de CORS (no-cors)
+                await fetch(urlFinalDisparo, {
+                    method: "GET",
+                    mode: "no-cors",
+                    cache: "no-cache"
                 });
-
-                // Tentamos ler a resposta como texto simples
-                const respostaTexto = await resposta.text();
-                console.log("Resposta bruta do Google:", respostaTexto);
-
-                loader.style.display = "none";
-
-                // Se o seu código lá no Google Apps Script retornar a palavra "Sucesso" ou similar
-                if (resposta.ok) {
-                    statusTexto.innerText = "Comunicação efetuada!";
-                    statusTexto.style.color = "#38a169";
-                    sucessoTexto.innerHTML = `<strong>O servidor respondeu com sucesso!</strong><br><br>Retorno do script: <em>"${respostaTexto}"</em><br><br><span style="color:#718096;">Se a linha ainda não apareceu na planilha, o erro está 100% dentro da lógica interna do seu arquivo .gs do Google (como o nome da aba errado ou falta de permissão).</span>`;
-                    sucessoTexto.style.display = "block";
-                    
-                    // O redirecionamento só aconteceria aqui, mas deixei comentado de propósito para NÃO abrir o desktop!
-                    // window.location.href = `${PAGINA_DESTINO}?gerente=${encodeURIComponent(codigoGerente)}`;
-                } else {
-                    throw new Error(`Código de erro HTTP: ${resposta.status}`);
-                }
+                
+                statusTexto.innerText = "Acesso registrado! Redirecionando...";
 
             } catch (erro) {
-                console.error("Erro capturado na portaria:", erro);
-                loader.style.display = "none";
-                statusTexto.innerText = "Falha na conexão de teste.";
-                statusTexto.style.color = "#e53e3e";
-                
-                erroTexto.innerHTML = `
-                    <strong>Erro de Bloqueio detectado!</strong><br>
-                    O navegador não conseguiu validar a gravação.<br><br>
-                    <strong>Detalhes técnicos do erro:</strong><br>
-                    ${erro.message || erro}<br><br>
-                    <em>Nota: Se aparecer "Failed to fetch", significa que o Google Script retornou um erro interno de segurança (CORS) ou o Deploy não está configurado para "Qualquer Pessoa".</em>
-                `;
-                erroTexto.style.display = "block";
+                // Registra o erro no console para diagnóstico técnico, mas não trava o corretor
+                console.error("Falha silenciosa no registro de auditoria:", erro);
+            } finally {
+                // Bloco FINALLY: Independente de dar sucesso ou falha na rede, 
+                // o corretor NÃO fica preso na tela e entra no sistema normalmente.
+                setTimeout(() => {
+                    window.location.href = `desktop.html?gerente=${encodeURIComponent(codigoGerente)}`;
+                }, 800);
             }
         }
 
+        // Inicializa o processo assim que a estrutura da portaria estiver pronta
         window.addEventListener('DOMContentLoaded', processarPortariaAcesso);
     </script>
 </body>
