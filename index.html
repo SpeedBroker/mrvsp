@@ -59,10 +59,6 @@
             font-weight: 600;
             color: #dd6b20;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body>
@@ -70,70 +66,51 @@
     <div class="card-portaria">
         <div id="status-icone" class="logo-placeholder">🔑</div>
         <div id="status-titulo" class="titulo">Portaria de Conexão</div>
-        <div id="status-subtitulo" class="subtitulo">Identificando sua credencial de acesso para auditoria digital...</div>
+        <div id="status-subtitulo" class="subtitulo">Aguarde enquanto identificamos a sua credencial de acesso para auditoria digital...</div>
         
         <div id="loader-sinal" class="loader"></div>
-        <div id="status-texto" class="status-msg">Analisando link do gerente...</div>
+        <div id="status-texto" class="status-msg">Verificando link de acesso...</div>
     </div>
+
+    <!-- Elemento invisível de imagem para forçar o disparo síncleo (O segredo do laboratório) -->
+    <img id="gatilho-oculto" style="display: none;" />
 
     <script>
         const URL_WEB_APP_GOOGLE = "https://script.google.com/macros/s/AKfycbwUbscQ8m89MqKVed5bVwvGorZJYeVJns8O32sbrjItUNnaQpBzqa1_4KY2smGKpyI/exec";
 
-        // Captura o parâmetro da URL limpando espaços e caracteres especiais
+        // Captura o gerente direto da URL
         const urlParams = new URLSearchParams(window.location.search);
-        const codigoGerente = urlParams.get('gerente') ? decodeURIComponent(urlParams.get('gerente')).trim() : "";
+        const codigoGerente = urlParams.get('gerente') ? urlParams.get('gerente').trim() : "";
 
-        async function processarPortariaAcesso() {
-            const statusIcone = document.getElementById('status-icone');
-            const statusTitulo = document.getElementById('status-titulo');
-            const statusTexto = document.getElementById('status-texto');
-            const statusSubtitulo = document.getElementById('status-subtitulo');
-            const loader = document.getElementById('loader-sinal');
+        const statusIcone = document.getElementById('status-icone');
+        const statusTitulo = document.getElementById('status-titulo');
+        const statusTexto = document.getElementById('status-texto');
+        const statusSubtitulo = document.getElementById('status-subtitulo');
+        const loader = document.getElementById('loader-sinal');
 
-            // BLOQUEIO SEGURO: Se não encontrar o parâmetro 'gerente' na URL, barra imediatamente
-            if (!codigoGerente || codigoGerente === "") {
-                loader.style.display = "none";
-                statusIcone.innerText = "🛑";
-                statusTitulo.innerText = "Acesso Recusado";
-                statusTitulo.style.color = "#e53e3e";
-                statusSubtitulo.innerText = "Link inválido ou incompleto. Para acessar o painel de Residenciais, você precisa utilizar o link exclusivo fornecido pelo seu gerente regional.";
-                statusTexto.innerText = "Chave de acesso ausente.";
-                statusTexto.style.color = "#e53e3e";
-                return; 
-            }
+        // REGRA DE BLOQUEIO ATIVA NATAL
+        if (codigoGerente === "") {
+            loader.style.display = "none";
+            statusIcone.innerText = "🛑";
+            statusTitulo.innerText = "Acesso Recusado";
+            statusTitulo.style.color = "#e53e3e";
+            statusSubtitulo.innerText = "Chave inválida. Você precisa do link de acesso oficial fornecido pelo seu gerente regional.";
+            statusTexto.innerText = "Portaria fechada.";
+            statusTexto.style.color = "#e53e3e";
+        } else {
+            // Se tem gerente, executa o disparo idêntico ao do laboratório de testes bem-sucedido
+            statusTexto.innerText = "Conectando ao banco de dados...";
+            
+            const urlFinalDisparo = URL_WEB_APP_GOOGLE + "?gerente=" + encodeURIComponent(codigoGerente) + "&acao=login&_ts=" + new Date().getTime();
+            
+            // Injeta a URL na imagem oculta (força o navegador a disparar o sinal sem bloqueio de segurança)
+            document.getElementById("gatilho-oculto").src = urlFinalDisparo;
 
-            // Monta o disparo garantindo que o parâmetro pego seja exatamente o digitado
-            const urlFinalDisparo = `${URL_WEB_APP_GOOGLE}?gerente=${encodeURIComponent(codigoGerente)}&acao=login&_ts=${new Date().getTime()}`;
-
-            try {
-                statusTexto.innerText = `Registrando acesso para o gerente: ${codigoGerente}...`;
-                
-                // Faz o envio para a planilha Google
-                await fetch(urlFinalDisparo, {
-                    method: "GET",
-                    mode: "no-cors",
-                    cache: "no-cache"
-                });
-
-                // Mantém os 2 segundos necessários para o navegador concluir o envio
-                await new Promise(resolve => setTimeout(resolve, 2000));
-
-                loader.style.display = "none";
-                statusIcone.innerText = "✅";
-                statusTexto.innerText = "Acesso homologado! Abrindo mapa...";
-                statusTexto.style.color = "#38a169";
-
-                // Avança para o mapa mantendo o mesmo gerente na URL
-                window.location.href = `desktop.html?gerente=${encodeURIComponent(codigoGerente)}`;
-
-            } catch (erro) {
-                console.error("Erro na comunicação com a planilha:", erro);
-                // Se der erro de rede, envia mesmo assim para não quebrar a operação comercial
-                window.location.href = `desktop.html?gerente=${encodeURIComponent(codigoGerente)}`;
-            }
+            // Aguarda os 2.5 segundos de segurança e redireciona nativamente
+            setTimeout(function() {
+                window.location.href = "desktop.html?gerente=" + encodeURIComponent(codigoGerente);
+            }, 2500);
         }
-
-        window.addEventListener('DOMContentLoaded', processarPortariaAcesso);
     </script>
 </body>
 </html>
