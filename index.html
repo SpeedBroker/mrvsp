@@ -70,19 +70,18 @@
     <div class="card-portaria">
         <div id="status-icone" class="logo-placeholder">🔑</div>
         <div id="status-titulo" class="titulo">Portaria de Conexão</div>
-        <div id="status-subtitulo" class="subtitulo">Aguarde enquanto identificamos a sua credencial de acesso para auditoria digital...</div>
+        <div id="status-subtitulo" class="subtitulo">Identificando sua credencial de acesso para auditoria digital...</div>
         
         <div id="loader-sinal" class="loader"></div>
-        <div id="status-texto" class="status-msg">Verificando parâmetros de link...</div>
+        <div id="status-texto" class="status-msg">Analisando link do gerente...</div>
     </div>
 
     <script>
-        // URL estável e testada do seu Google Apps Script
         const URL_WEB_APP_GOOGLE = "https://script.google.com/macros/s/AKfycbwUbscQ8m89MqKVed5bVwvGorZJYeVJns8O32sbrjItUNnaQpBzqa1_4KY2smGKpyI/exec";
 
-        // Captura o gerente vindo na barra de endereços (?gerente=...)
+        // Captura o parâmetro da URL limpando espaços e caracteres especiais
         const urlParams = new URLSearchParams(window.location.search);
-        const codigoGerente = urlParams.get('gerente') ? urlParams.get('gerente').trim() : "";
+        const codigoGerente = urlParams.get('gerente') ? decodeURIComponent(urlParams.get('gerente')).trim() : "";
 
         async function processarPortariaAcesso() {
             const statusIcone = document.getElementById('status-icone');
@@ -91,50 +90,49 @@
             const statusSubtitulo = document.getElementById('status-subtitulo');
             const loader = document.getElementById('loader-sinal');
 
-            // REGRA DE BLOQUEIO: Se o gerente estiver vazio, corta o acesso na hora!
-            if (!codigoGerente) {
+            // BLOQUEIO SEGURO: Se não encontrar o parâmetro 'gerente' na URL, barra imediatamente
+            if (!codigoGerente || codigoGerente === "") {
                 loader.style.display = "none";
                 statusIcone.innerText = "🛑";
                 statusTitulo.innerText = "Acesso Recusado";
                 statusTitulo.style.color = "#e53e3e";
-                statusSubtitulo.innerText = "Você tentou acessar o sistema usando um link curto ou inválido. Solicite o link oficial de acesso direto ao seu gerente regional.";
-                statusTexto.innerText = "Portaria fechada: Código de Gerente Ausente.";
+                statusSubtitulo.innerText = "Link inválido ou incompleto. Para acessar o painel de Residenciais, você precisa utilizar o link exclusivo fornecido pelo seu gerente regional.";
+                statusTexto.innerText = "Chave de acesso ausente.";
                 statusTexto.style.color = "#e53e3e";
-                return; // Para a execução do script aqui e não deixa redirecionar!
+                return; 
             }
 
-            // Se passou pelo bloqueio, monta o link para enviar ao Google
+            // Monta o disparo garantindo que o parâmetro pego seja exatamente o digitado
             const urlFinalDisparo = `${URL_WEB_APP_GOOGLE}?gerente=${encodeURIComponent(codigoGerente)}&acao=login&_ts=${new Date().getTime()}`;
 
             try {
-                statusTexto.innerText = "Gerente identificado! Gravando logs de acesso...";
+                statusTexto.innerText = `Registrando acesso para o gerente: ${codigoGerente}...`;
                 
-                // Dispara o sinal para o Google
+                // Faz o envio para a planilha Google
                 await fetch(urlFinalDisparo, {
                     method: "GET",
                     mode: "no-cors",
                     cache: "no-cache"
                 });
 
-                // Segura o usuário por 2 segundos para dar tempo do navegador enviar os dados
+                // Mantém os 2 segundos necessários para o navegador concluir o envio
                 await new Promise(resolve => setTimeout(resolve, 2000));
 
                 loader.style.display = "none";
                 statusIcone.innerText = "✅";
-                statusTexto.innerText = "Acesso Liberado! Redirecionando...";
+                statusTexto.innerText = "Acesso homologado! Abrindo mapa...";
                 statusTexto.style.color = "#38a169";
 
-                // Redireciona o corretor para o desktop.html passando o ID do gerente
+                // Avança para o mapa mantendo o mesmo gerente na URL
                 window.location.href = `desktop.html?gerente=${encodeURIComponent(codigoGerente)}`;
 
             } catch (erro) {
-                console.error("Erro capturado na portaria:", erro);
-                // Caso a internet caia no meio, deixa passar por segurança comercial
+                console.error("Erro na comunicação com a planilha:", erro);
+                // Se der erro de rede, envia mesmo assim para não quebrar a operação comercial
                 window.location.href = `desktop.html?gerente=${encodeURIComponent(codigoGerente)}`;
             }
         }
 
-        // Inicializa o processo assim que a página carregar
         window.addEventListener('DOMContentLoaded', processarPortariaAcesso);
     </script>
 </body>
