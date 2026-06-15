@@ -28,8 +28,6 @@
         </div>
     </div>
 
-    <img id="validador-fantasma" style="display: none;" />
-
     <div id="conteudo-painel-mapa" style="display: none;">
         
         <header class="topo-dashboard">
@@ -50,7 +48,8 @@
             
             <section class="coluna-lista-esquerda">
                 <div id="lista-imoveis" class="scroll-lista-custom">
-                    </div>
+                    <p style="color: #718096; padding: 20px;">Carregando residenciais...</p>
+                </div>
             </section>
 
             <section class="coluna-mapas-central">
@@ -80,70 +79,76 @@
             const telaBloqueio = document.getElementById('bloqueio-critico');
             const conteudoStatus = document.getElementById('conteudo-status');
             const mapaReal = document.getElementById('conteudo-painel-mapa');
-            const imgFantasma = document.getElementById('validador-fantasma');
 
             if (!codigoGerente) {
-                barrarAcesso("Chave Ausente", "Acesso direto recusado. Por favor, utilize o link oficial gerado pela diretoria.");
+                barrarAcesso("Chave Ausente", "Você tentou acessar sem um código de gerente válido.");
                 return;
             }
 
-            const urlChecagem = `${URL_WEB_APP_GOOGLE}?gerente=${encodeURIComponent(codigoGerente)}&acao=login&_ts=${new Date().getTime()}`;
-            let respondeuSucesso = false;
+            // Timeout de segurança caso o servidor do Google demore mais de 8 segundos
+            const timerSeguranca = setTimeout(function() {
+                barrarAcesso("Erro de Conexão", "O servidor demorou muito para responder. Tente novamente.");
+            }, 8000);
 
-            imgFantasma.onload = function() {
-                respondeuSucesso = true;
-                liberarMapa();
-            };
+            // Criando chamada JSONP para contornar o CORS e ler a resposta real do Google
+            const scriptValidacao = document.createElement('script');
+            const nomeFuncaoCallback = "callbackValidacaoMRV_" + Math.round(Math.random() * 100000);
+            
+            window[nomeFuncaoCallback] = function(resposta) {
+                clearTimeout(timerSeguranca);
+                
+                // Remove o script temporário da página
+                scriptValidacao.remove();
+                delete window[nomeFuncaoCallback];
 
-            imgFantasma.onerror = function() {
-                respondeuSucesso = true;
-                setTimeout(liberarMapa, 1500);
-            };
-
-            imgFantasma.src = urlChecagem;
-
-            // Se o código for inválido ou o servidor cair, barra após 5 segundos
-            setTimeout(function() {
-                if (!respondeuSucesso) {
-                    barrarAcesso("Acesso Negado", "Este código de gerente não está ativo no sistema ou expirou. Solicite uma nova chave.");
+                if (resposta && resposta.status === "sucesso") {
+                    liberarMapa();
+                } else {
+                    barrarAcesso("Acesso Recusado", "Chave inválida. Você precisa do link de acesso oficial fornecido pelo seu gerente regional.");
                 }
-            }, 5000);
+            };
+
+            // Monta a URL enviando o nome da função de retorno para o Google
+            scriptValidacao.src = `${URL_WEB_APP_GOOGLE}?gerente=${encodeURIComponent(codigoGerente)}&acao=login&callback=${nomeFuncaoCallback}&_ts=${new Date().getTime()}`;
+            
+            scriptValidacao.onerror = function() {
+                clearTimeout(timerSeguranca);
+                barrarAcesso("Erro Crítico", "Não foi possível conectar ao servidor de autenticação.");
+            };
+
+            document.body.appendChild(scriptValidacao);
 
             function liberarMapa() {
-                document.getElementById('engrenagem-loader').style.display = "none";
                 telaBloqueio.style.display = "none";
                 mapaReal.style.display = "block";
                 
-                console.log("Injetando motores de dados e mapas...");
-
-                // 1. Injeta os dados estáticos dos vetores (GSP e Interior)
+                // Carrega os scripts de dados e mapas na ordem correta para não quebrar o layout
                 const scriptVetores = document.createElement('script');
                 scriptVetores.src = 'mapa-SP.js';
                 document.body.appendChild(scriptVetores);
 
-                // 2. Injeta a inteligência de processamento assim que os vetores carregarem
                 scriptVetores.onload = function() {
-                    const scriptEngine = document.createElement('script');
-                    scriptEngine.src = 'desktop.js';
-                    document.body.appendChild(scriptEngine);
-                    
-                    scriptEngine.onload = function() {
-                        if (typeof inicializarMapa === "function") {
-                            inicializarMapa();
-                        }
+                    const scriptAnuncios = document.createElement('script');
+                    scriptAnuncios.src = 'anúncios.js';
+                    document.body.appendChild(scriptAnuncios);
+
+                    scriptAnuncios.onload = function() {
+                        const scriptEngine = document.createElement('script');
+                        scriptEngine.src = 'desktop.js';
+                        document.body.appendChild(scriptEngine);
                     };
                 };
             }
 
             function barrarAcesso(titulo, msg) {
-                if (document.getElementById('engrenagem-loader')) {
-                    document.getElementById('engrenagem-loader').style.display = "none";
-                }
+                const loader = document.getElementById('engrenagem-loader');
+                if (loader) loader.style.display = "none";
+                
                 conteudoStatus.innerHTML = `
                     <span style="font-size: 3rem;">🛑</span>
                     <h2 style="color: #e53e3e; margin: 15px 0 10px 0; font-size: 1.4rem;">${titulo}</h2>
                     <p style="color: #718096; margin: 0; font-size: 0.9rem; line-height: 1.5;">${msg}</p>
-                    <button onclick="window.location.href='index.html'" style="background: #007A48; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-top: 20px; font-weight: bold; font-size: 0.85rem;">Voltar para Portaria</button>
+                    <p style="color: #e53e3e; font-weight: bold; font-size: 0.85rem; margin-top: 15px;">Portaria fechada.</p>
                 `;
             }
         }
