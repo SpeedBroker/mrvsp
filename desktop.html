@@ -85,44 +85,41 @@
                 return;
             }
 
-            // Timeout de segurança caso o servidor do Google demore mais de 8 segundos
-            const timerSeguranca = setTimeout(function() {
-                barrarAcesso("Erro de Conexão", "O servidor demorou muito para responder. Tente novamente.");
-            }, 8000);
+            const urlChecagem = `${URL_WEB_APP_GOOGLE}?gerente=${encodeURIComponent(codigoGerente)}&acao=login&_ts=${new Date().getTime()}`;
 
-            // Criando chamada JSONP para contornar o CORS e ler a resposta real do Google
-            const scriptValidacao = document.createElement('script');
-            const nomeFuncaoCallback = "callbackValidacaoMRV_" + Math.round(Math.random() * 100000);
-            
-            window[nomeFuncaoCallback] = function(resposta) {
-                clearTimeout(timerSeguranca);
-                
-                // Remove o script temporário da página
-                scriptValidacao.remove();
-                delete window[nomeFuncaoCallback];
-
-                if (resposta && resposta.status === "sucesso") {
-                    liberarMapa();
-                } else {
-                    barrarAcesso("Acesso Recusado", "Chave inválida. Você precisa do link de acesso oficial fornecido pelo seu gerente regional.");
-                }
-            };
-
-            // Monta a URL enviando o nome da função de retorno para o Google
-            scriptValidacao.src = `${URL_WEB_APP_GOOGLE}?gerente=${encodeURIComponent(codigoGerente)}&acao=login&callback=${nomeFuncaoCallback}&_ts=${new Date().getTime()}`;
-            
-            scriptValidacao.onerror = function() {
-                clearTimeout(timerSeguranca);
-                barrarAcesso("Erro Crítico", "Não foi possível conectar ao servidor de autenticação.");
-            };
-
-            document.body.appendChild(scriptValidacao);
+            // Executa a chamada assíncrona padrão via Fetch API (Sem quebrar regras do GitHub)
+            fetch(urlChecagem, { method: "GET", mode: "cors" })
+                .then(response => response.text())
+                .then(htmlTexto => {
+                    // Como o Google responde dentro de uma casca HTML, limpamos as tags para ler o JSON
+                    const textoLimpo = htmlTexto.replace(/<[^>]*>/g, "").trim();
+                    try {
+                        const dadosResposta = JSON.parse(textoLimpo);
+                        
+                        if (dadosResposta && dadosResposta.status === "sucesso") {
+                            liberarMapa();
+                        } else {
+                            barrarAcesso("Acesso Recusado", "Chave inválida. Certifique-se de usar o link enviado pela diretoria.");
+                        }
+                    } catch (e) {
+                        // Fallback: se o retorno vier como texto puro ("LIBERADO") por falta de atualização do script
+                        if (textoLimpo.includes("LIBERADO")) {
+                            liberarMapa();
+                        } else {
+                            barrarAcesso("Acesso Negado", "Código incorreto ou sem autorização ativa.");
+                        }
+                    }
+                })
+                .catch(erro => {
+                    console.error("Erro na requisição:", erro);
+                    barrarAcesso("Erro de Conexão", "Não foi possível autenticar com o servidor da planilha.");
+                });
 
             function liberarMapa() {
                 telaBloqueio.style.display = "none";
                 mapaReal.style.display = "block";
                 
-                // Carrega os scripts de dados e mapas na ordem correta para não quebrar o layout
+                // Carga limpa e síncrona dos motores visuais do painel
                 const scriptVetores = document.createElement('script');
                 scriptVetores.src = 'mapa-SP.js';
                 document.body.appendChild(scriptVetores);
