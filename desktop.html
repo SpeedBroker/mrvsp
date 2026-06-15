@@ -3,32 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard MRV SP</title>
-    <link class="link-css-base" rel="stylesheet" href="desktop.css">
+    <title>Dashboard MRV SP - Modo de Diagnóstico</title>
+    <link rel="stylesheet" href="desktop.css">
     <style>
-        /* CSS DA TRAVA DE SEGURANÇA */
-        #bloqueio-critico {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #f4f6f9; display: flex; justify-content: center;
-            align-items: center; z-index: 99999; text-align: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        /* Banner temporário no topo apenas para avisar que a trava está desligada */
+        .banner-diagnostico {
+            background: #e6fffa;
+            border-bottom: 2px solid #319795;
+            color: #234e52;
+            padding: 10px;
+            text-align: center;
+            font-family: sans-serif;
+            font-size: 0.9rem;
+            font-weight: bold;
         }
-        .card-erro { background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 450px; width: 90%; }
-        .loader-local { width: 40px; height: 40px; border: 4px solid #edf2f7; border-top: 4px solid #007A48; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto 0 auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <div id="bloqueio-critico">
-        <div class="card-erro" id="conteudo-status">
-            <h2 style="color: #007A48; margin: 0 0 10px 0; font-size: 1.4rem;">Validando Chave de Acesso...</h2>
-            <p style="color: #718096; margin: 0; font-size: 0.9rem; line-height: 1.5;">Aguarde enquanto confirmamos a autorização deste painel regional com o servidor.</p>
-            <div id="engrenagem-loader" class="loader-local"></div>
-        </div>
+    <div class="banner-diagnostico">
+        🛠️ MODO DE DIAGNÓSTICO: Trava de segurança desativada temporariamente.
     </div>
 
-    <div id="conteudo-painel-mapa" style="display: none;">
+    <div id="conteudo-painel-mapa">
         
         <header class="topo-dashboard">
             <div class="topo-esquerdo">
@@ -70,87 +67,31 @@
     </div>
 
     <script>
-        const URL_WEB_APP_GOOGLE = "https://script.google.com/macros/s/AKfycbwUbscQ8m89MqKVed5bVwvGorZJYeVJns8O32sbrjItUNnaQpBzqa1_4KY2smGKpyI/exec";
+        console.log("Iniciando carregamento direto dos scripts do sistema...");
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const codigoGerente = (urlParams.get('gerente') || urlParams.get('get') || "").trim();
-
-        function verificarSegurancaPainel() {
-            const telaBloqueio = document.getElementById('bloqueio-critico');
-            const conteudoStatus = document.getElementById('conteudo-status');
-
-            if (!codigoGerente) {
-                barrarAcesso("Chave Ausente", "Acesso direto recusado. Por favor, utilize a URL completa contendo sua chave de gerente.");
-                return;
-            }
-
-            // Define um identificador único de callback para esta aba do navegador
-            const idCallback = "validarAcessoMRV_" + Math.floor(Math.random() * 100000);
-            
-            // Cria a escuta global que o Google irá chamar de volta
-            window[idCallback] = function(resposta) {
-                // Remove a tag de script temporária que foi injetada
-                const elementoTemp = document.getElementById('script-seguranca-temp');
-                if (elementoTemp) elementoTemp.remove();
-                delete window[idCallback];
-
-                if (resposta && resposta.status === "sucesso") {
-                    liberarMapa();
-                } else {
-                    var detalheErro = (resposta && resposta.mensagem) ? resposta.mensagem : "Chave inválida ou inativa.";
-                    barrarAcesso("Acesso Recusado", detalheErro);
-                }
+        // Função auxiliar para carregar scripts em ordem sequencial sem quebras
+        function carregarScript(src, callback) {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = callback;
+            script.onerror = function() {
+                console.error("Erro crítico ao carregar o arquivo: " + src);
             };
-
-            // Injeta o elemento script montando a ponte segura contra erros de CORS
-            const scriptTag = document.createElement('script');
-            scriptTag.id = 'script-seguranca-temp';
-            scriptTag.src = `${URL_WEB_APP_GOOGLE}?gerente=${encodeURIComponent(codigoGerente)}&acao=login&callback=${idCallback}&_ts=${new Date().getTime()}`;
-            
-            scriptTag.onerror = function() {
-                barrarAcesso("Erro de Rede", "Não foi possível conectar ao servidor do Google Apps Script. Verifique a URL do Web App.");
-            };
-
-            document.body.appendChild(scriptTag);
+            document.body.appendChild(script);
         }
 
-        function liberarMapa() {
-            document.getElementById('bloqueio-critico').style.display = "none";
-            document.getElementById('conteudo-painel-mapa').style.display = "block";
+        // Carrega a cadeia de dependências na ordem exata que o sistema precisa
+        carregarScript('mapa-SP.js', function() {
+            console.log("1/3: mapa-SP.js carregado com sucesso.");
             
-            // Carregamento ordenado dos scripts visuais do dashboard
-            const scriptVetores = document.createElement('script');
-            scriptVetores.src = 'mapa-SP.js';
-            document.body.appendChild(scriptVetores);
-
-            scriptVetores.onload = function() {
-                const scriptAnuncios = document.createElement('script');
-                scriptAnuncios.src = 'anúncios.js';
-                document.body.appendChild(scriptAnuncios);
-
-                scriptAnuncios.onload = function() {
-                    const scriptEngine = document.createElement('script');
-                    scriptEngine.src = 'desktop.js';
-                    document.body.appendChild(scriptEngine);
-                };
-            };
-        }
-
-        function barrarAcesso(titulo, msg) {
-            const loader = document.getElementById('engrenagem-loader');
-            if (loader) loader.style.display = "none";
-            
-            document.getElementById('conteudo-status').innerHTML = `
-                <span style="font-size: 3rem;">🛑</span>
-                <h2 style="color: #e53e3e; margin: 15px 0 10px 0; font-size: 1.3rem;">${titulo}</h2>
-                <div style="background: #fff5f5; border: 1px solid #fed7d7; padding: 12px; border-radius: 6px; margin: 10px 0;">
-                    <p style="color: #c53030; margin: 0; font-size: 0.85rem; line-height: 1.4; font-family: monospace;">${msg}</p>
-                </div>
-                <p style="color: #718096; font-size: 0.8rem; margin: 15px 0 0 0;">Caso acredite que isso seja um erro, verifique o cadastro na aba <b>LogAcessos</b>.</p>
-            `;
-        }
-
-        window.addEventListener('DOMContentLoaded', verificarSegurancaPainel);
+            carregarScript('anúncios.js', function() {
+                console.log("2/3: anúncios.js carregado com sucesso.");
+                
+                carregarScript('desktop.js', function() {
+                    console.log("3/3: desktop.js carregado. Sistema inicializado!");
+                });
+            });
+        });
     </script>
 </body>
 </html>
