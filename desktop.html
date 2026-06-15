@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard MRV SP</title>
+    <link rel="stylesheet" href="desktop.css">
     <style>
         /* CSS DA TRAVA DE SEGURANÇA */
         #bloqueio-critico {
@@ -31,7 +32,43 @@
 
     <div id="conteudo-painel-mapa" style="display: none;">
         
+        <header class="topo-dashboard">
+            <div class="topo-esquerdo">
+                <span class="logo-mrv">MRV</span>
+                <h1 id="titulo-sistema-mrv">RESIDENCIAIS MRV EM SÃO PAULO</h1>
+            </div>
+            <div class="topo-direito">
+                <button id="btn-documentos" class="btn-corporativo-topo">📝 DOCUMENTOS GERAIS</button>
+            </div>
+        </header>
+
+        <div class="faixa-sub-titulo">
+            <h2 id="cidade-titulo">SELECIONE UMA REGIÃO NO MAPA</h2>
         </div>
+
+        <main class="container-principal-painel">
+            
+            <section class="coluna-lista-esquerda">
+                <div id="lista-imoveis" class="scroll-lista-custom">
+                    </div>
+            </section>
+
+            <section class="coluna-mapas-central">
+                <div id="caixa-a" class="area-mapa-principal"></div>
+                <div id="caixa-b" class="area-mapa-miniatura"></div>
+            </section>
+
+            <section class="coluna-vitrine-direita">
+                <div id="ficha-tecnica" class="scroll-vitrine-custom">
+                    <div style="text-align:center; color:#ccc; margin-top:80px;">
+                        <p style="font-size:30px;">📍</p>
+                        <p>Clique no mapa ou na lista</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
 
     <script>
         const URL_WEB_APP_GOOGLE = "https://script.google.com/macros/s/AKfycbwUbscQ8m89MqKVed5bVwvGorZJYeVJns8O32sbrjItUNnaQpBzqa1_4KY2smGKpyI/exec";
@@ -65,7 +102,7 @@
 
             imgFantasma.src = urlChecagem;
 
-            // Se o código for inválido, o Google vai rejeitar e o timer estoura em 5 segundos barrando o usuário
+            // Se o código for inválido ou o servidor cair, barra após 5 segundos
             setTimeout(function() {
                 if (!respondeuSucesso) {
                     barrarAcesso("Acesso Negado", "Este código de gerente não está ativo no sistema ou expirou. Solicite uma nova chave.");
@@ -77,15 +114,31 @@
                 telaBloqueio.style.display = "none";
                 mapaReal.style.display = "block";
                 
-                // INJEÇÃO DO SEU ARQUIVO DE MAPAS:
-                // Só criamos a tag do desktop.js DEPOIS que o Google confirma que o gerente é válido!
-                const scriptMapa = document.createElement('script');
-                scriptMapa.src = 'desktop.js';
-                document.body.appendChild(scriptMapa);
+                console.log("Injetando motores de dados e mapas...");
+
+                // 1. Injeta os dados estáticos dos vetores (GSP e Interior)
+                const scriptVetores = document.createElement('script');
+                scriptVetores.src = 'mapa-SP.js';
+                document.body.appendChild(scriptVetores);
+
+                // 2. Injeta a inteligência de processamento assim que os vetores carregarem
+                scriptVetores.onload = function() {
+                    const scriptEngine = document.createElement('script');
+                    scriptEngine.src = 'desktop.js';
+                    document.body.appendChild(scriptEngine);
+                    
+                    scriptEngine.onload = function() {
+                        if (typeof inicializarMapa === "function") {
+                            inicializarMapa();
+                        }
+                    };
+                };
             }
 
             function barrarAcesso(titulo, msg) {
-                document.getElementById('engrenagem-loader').style.display = "none";
+                if (document.getElementById('engrenagem-loader')) {
+                    document.getElementById('engrenagem-loader').style.display = "none";
+                }
                 conteudoStatus.innerHTML = `
                     <span style="font-size: 3rem;">🛑</span>
                     <h2 style="color: #e53e3e; margin: 15px 0 10px 0; font-size: 1.4rem;">${titulo}</h2>
