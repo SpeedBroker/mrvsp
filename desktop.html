@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard MRV SP</title>
-    <link rel="stylesheet" href="desktop.css">
+    <link class="link-css-base" rel="stylesheet" href="desktop.css">
     <style>
         /* CSS DA TRAVA DE SEGURANÇA */
         #bloqueio-critico {
@@ -13,7 +13,7 @@
             align-items: center; z-index: 99999; text-align: center;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        .card-erro { background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 400px; width: 90%; }
+        .card-erro { background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 450px; width: 90%; }
         .loader-local { width: 40px; height: 40px; border: 4px solid #edf2f7; border-top: 4px solid #007A48; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto 0 auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -80,34 +80,35 @@
             const conteudoStatus = document.getElementById('conteudo-status');
 
             if (!codigoGerente) {
-                barrarAcesso("Chave Ausente", "Você tentou acessar sem um código de gerente válido.");
+                barrarAcesso("Chave Ausente", "Acesso direto recusado. Por favor, utilize a URL completa contendo sua chave de gerente.");
                 return;
             }
 
-            // Cria um nome de função único e temporário para receber os dados do Google
-            const nomeFuncaoUnica = "validarAcessoMRV_" + Math.floor(Math.random() * 100000);
+            // Define um identificador único de callback para esta aba do navegador
+            const idCallback = "validarAcessoMRV_" + Math.floor(Math.random() * 100000);
             
-            // Define o que acontece quando o Google responde de volta
-            window[nomeFuncaoUnica] = function(resposta) {
-                // Limpa o script gerado e a função da memória
-                document.getElementById('script-seguranca-temp').remove();
-                delete window[nomeFuncaoUnica];
+            // Cria a escuta global que o Google irá chamar de volta
+            window[idCallback] = function(resposta) {
+                // Remove a tag de script temporária que foi injetada
+                const elementoTemp = document.getElementById('script-seguranca-temp');
+                if (elementoTemp) elementoTemp.remove();
+                delete window[idCallback];
 
                 if (resposta && resposta.status === "sucesso") {
                     liberarMapa();
                 } else {
-                    barrarAcesso("Acesso Recusado", "Chave inválida. Certifique-se de usar o link enviado pela diretoria.");
+                    var detalheErro = (resposta && resposta.mensagem) ? resposta.mensagem : "Chave inválida ou inativa.";
+                    barrarAcesso("Acesso Recusado", detalheErro);
                 }
             };
 
-            // Injeta uma tag script apontando para o Google (Isso mata qualquer bloqueio de CORS)
+            // Injeta o elemento script montando a ponte segura contra erros de CORS
             const scriptTag = document.createElement('script');
             scriptTag.id = 'script-seguranca-temp';
-            scriptTag.src = `${URL_WEB_APP_GOOGLE}?gerente=${encodeURIComponent(codigoGerente)}&acao=login&callback=${nomeFuncaoUnica}&_ts=${new Date().getTime()}`;
+            scriptTag.src = `${URL_WEB_APP_GOOGLE}?gerente=${encodeURIComponent(codigoGerente)}&acao=login&callback=${idCallback}&_ts=${new Date().getTime()}`;
             
-            // Se houver falha de rede ou link quebrado do Google
             scriptTag.onerror = function() {
-                barrarAcesso("Erro de Conexão", "Não foi possível estabelecer contato com o servidor de validação.");
+                barrarAcesso("Erro de Rede", "Não foi possível conectar ao servidor do Google Apps Script. Verifique a URL do Web App.");
             };
 
             document.body.appendChild(scriptTag);
@@ -117,7 +118,7 @@
             document.getElementById('bloqueio-critico').style.display = "none";
             document.getElementById('conteudo-painel-mapa').style.display = "block";
             
-            // Carga sequencial segura dos scripts de lógica interna para não quebrar o layout
+            // Carregamento ordenado dos scripts visuais do dashboard
             const scriptVetores = document.createElement('script');
             scriptVetores.src = 'mapa-SP.js';
             document.body.appendChild(scriptVetores);
@@ -141,13 +142,14 @@
             
             document.getElementById('conteudo-status').innerHTML = `
                 <span style="font-size: 3rem;">🛑</span>
-                <h2 style="color: #e53e3e; margin: 15px 0 10px 0; font-size: 1.4rem;">${titulo}</h2>
-                <p style="color: #718096; margin: 0; font-size: 0.9rem; line-height: 1.5;">${msg}</p>
-                <p style="color: #e53e3e; font-weight: bold; font-size: 0.85rem; margin-top: 15px;">Portaria fechada.</p>
+                <h2 style="color: #e53e3e; margin: 15px 0 10px 0; font-size: 1.3rem;">${titulo}</h2>
+                <div style="background: #fff5f5; border: 1px solid #fed7d7; padding: 12px; border-radius: 6px; margin: 10px 0;">
+                    <p style="color: #c53030; margin: 0; font-size: 0.85rem; line-height: 1.4; font-family: monospace;">${msg}</p>
+                </div>
+                <p style="color: #718096; font-size: 0.8rem; margin: 15px 0 0 0;">Caso acredite que isso seja um erro, verifique o cadastro na aba <b>LogAcessos</b>.</p>
             `;
         }
 
-        // Executa a validação assim que a página terminar de carregar os elementos básicos
         window.addEventListener('DOMContentLoaded', verificarSegurancaPainel);
     </script>
 </body>
