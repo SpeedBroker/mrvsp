@@ -217,12 +217,13 @@ async function carregarAbaDocumentos() {
             let textoLinha = linha ? linha.trim() : "";
             if (!textoLinha) return null;
             
-            const inlineLimpa = textoLinha.replace(/^"|"$/g, '').trim();
-            const ultimaVirgula = inlineLimpa.lastIndexOf(',');
+            // CORRIGIDO: Removida a referência circular e antecipada da variável
+            const textoLimpo = textoLinha.replace(/^"|"$/g, '').trim();
+            const ultimaVirgula = textoLimpo.lastIndexOf(',');
             if (ultimaVirgula === -1) return null;
             
-            const titulo = inlineLimpa.substring(0, ultimaVirgula).trim().replace(/^"|"$/g, '');
-            const url = inlineLimpa.substring(ultimaVirgula + 1).trim().replace(/^"|"$/g, '');
+            const titulo = textoLimpo.substring(0, ultimaVirgula).trim().replace(/^"|"$/g, '');
+            const url = textoLimpo.substring(ultimaVirgula + 1).trim().replace(/^"|"$/g, '');
             
             if (!titulo || !url.startsWith('http')) return null;
             return { titulo, url };
