@@ -72,72 +72,61 @@
     </div>
 
     <script>
-        // SUAS CONFIGURAÇÕES - Cole aqui a URL exata do seu Web App do Google Apps Script
-        const URL_API_GOOGLE = "https://script.google.com/macros/s/AKfycbwXlu0K9kGfFa0yxhhsUoX5MKz3clEOUPUSpuh_2zcS5eqtWzMLIrQezwumD2sd9m4/exec";
+        // SUAS CONFIGURAÇÕES - Cole aqui a sua nova URL do Web App gerada
+        const URL_API_GOOGLE = "COLE_AQUI_A_SUA_URL_DO_WEB_APP";
 
+        // Função para capturar parâmetros da URL
         function obterParametroUrl(nome) {
             var regex = new RegExp('[\\?&]' + nome + '=([^&#]*)');
             var resultados = regex.exec(location.search);
             return resultados === null ? '' : decodeURIComponent(resultados[1].replace(/\+/g, ' '));
         }
 
+        // Função para gerar uma marca única (ID) para a máquina caso não tenha
+        function obterOuCriarIdentificadorMaquina() {
+            let idMaquina = localStorage.getItem('mrv_dispositivo_id');
+            if (!idMaquina) {
+                idMaquina = 'usr_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('mrv_dispositivo_id', idMaquina);
+            }
+            return idMaquina;
+        }
+
         const ref = obterParametroUrl('ref');
         const painel = document.getElementById('painel-status');
 
         if (!ref) {
-            // Cenário A: Sem código na URL -> Bloqueio imediato
             exibirAcessoRecusado("Acesso Recusado", "Você tentou acessar a URL direta sem o código do seu gerente regional. Solicite o link oficial.");
         } else {
-            // Cenário B: Possui código -> Vamos verificar a memória do navegador (localStorage)
-            const hoje = new Date().toISOString().slice(0, 10); // Formato: AAAA-MM-DD
-            const chaveChaveiro = `mrv_acesso_${ref}`;
-            const jaAcessouHoje = localStorage.getItem(chaveChaveiro);
+            const userID = obterOuCriarIdentificadorMaquina();
 
-            if (jaAcessouHoje === hoje) {
-                // Já acessou hoje! Libera direto SEM registrar nova linha na planilha
-                painel.innerHTML = `
-                    <div class="spinner" style="border-top-color: var(--mrv-laranja);"></div>
-                    <h2 style="color: var(--mrv-verde);">Bem-vindo de volta!</h2>
-                    <p>Sua sessão está ativa. Redirecionando para o painel...</p>
-                `;
-                setTimeout(() => {
+            painel.innerHTML = `
+                <div class="spinner"></div>
+                <h2 style="color: var(--mrv-verde);">Validando Acesso...</h2>
+                <p>Verificando integridade das cotas digitais.</p>
+            `;
+
+            // Envia os parâmetros organizados para a nova rotina do script
+            fetch(`${URL_API_GOOGLE}?ref=${ref}&userID=${userID}`)
+                .then(response => response.json())
+                .then(dados => {
+                    if (dados.status === "autorizado") {
+                        painel.innerHTML = `
+                            <div class="spinner" style="border-top-color: var(--mrv-laranja);"></div>
+                            <h2 style="color: var(--mrv-verde);">Acesso Autorizado!</h2>
+                            <p>Carregando o painel de residenciais...</p>
+                        `;
+                        setTimeout(() => {
+                            window.location.href = `desktop.html?ref=${ref}`;
+                        }, 1200);
+                    } else {
+                        exibirAcessoRecusado("Acesso Recusado", dados.reason || "Cota esgotada ou link inválido.");
+                    }
+                })
+                .catch(erro => {
+                    console.error("Erro na validação de rede:", erro);
                     window.location.href = `desktop.html?ref=${ref}`;
-                }, 1000);
-            } else {
-                // Primeiro acesso do dia! Precisamos validar no Google Apps Script e registrar o acesso
-                painel.innerHTML = `
-                    <div class="spinner"></div>
-                    <h2 style="color: var(--mrv-verde);">Registrando Primeiro Acesso...</h2>
-                    <p>Validando suas cotas de visualização com o servidor.</p>
-                `;
-
-                // Faz a chamada para o Google Sheets para computar o acesso
-                fetch(`${URL_API_GOOGLE}?ref=${ref}`)
-                    .then(response => response.json())
-                    .then(dados => {
-                        if (dados.status === "autorizado") {
-                            // Salva na memória do navegador para não repetir o registro hoje
-                            localStorage.setItem(chaveChaveiro, hoje);
-                            
-                            painel.innerHTML = `
-                                <div class="spinner" style="border-top-color: var(--mrv-laranja);"></div>
-                                <h2 style="color: var(--mrv-verde);">Acesso Autorizado!</h2>
-                                <p>Carregando o painel de residenciais...</p>
-                            `;
-                            setTimeout(() => {
-                                window.location.href = `desktop.html?ref=${ref}`;
-                            }, 1000);
-                        } else {
-                            exibirAcessoRecusado("Acesso Recusado", dados.reason || "Código de gerente inválido ou cota esgotada.");
-                        }
-                    })
-                    .catch(erro => {
-                        // Tratamento caso esteja rodando localmente (CORS) ou dê erro de rede
-                        console.error("Erro na validação:", erro);
-                        // Para não travar seus testes locais, se der erro de rede mas tiver ref, vamos deixar passar
-                        window.location.href = `desktop.html?ref=${ref}`;
-                    });
-            }
+                });
         }
 
         function exibirAcessoRecusado(titulo, mensagem) {
