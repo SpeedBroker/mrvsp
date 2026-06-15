@@ -1,152 +1,20 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpeedBroker — Validando Acesso...</title>
-    <style>
-        :root {
-            --mrv-verde: #007A48;
-            --mrv-laranja: #F37021;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f6f9;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .card-portaria {
-            background: #ffffff;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e2e8f0;
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-        }
-        .logo-placeholder {
-            font-size: 3rem;
-            margin-bottom: 20px;
-        }
-        .titulo {
-            color: #2d3748;
-            font-size: 1.4rem;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-        .subtitulo {
-            color: #718096;
-            font-size: 0.9rem;
-            line-height: 1.5;
-            margin-bottom: 30px;
-        }
-        .loader {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #edf2f7;
-            border-top: 4px solid var(--mrv-verde);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px auto;
-        }
-        .status-msg {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--mrv-verde);
-        }
-        .erro-box {
-            display: none;
-            color: #e53e3e;
-            background: #fff5f5;
-            padding: 15px;
-            border-radius: 6px;
-            border: 1px solid #fed7d7;
-            font-size: 0.85rem;
-            margin-top: 15px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
-</head>
-<body>
-
-    <div class="card-portaria">
-        <div class="logo-placeholder">🏢</div>
-        <div class="titulo">Sistema de Vendas MRV</div>
-        <div class="subtitulo">Estamos autenticando as credenciais de segurança e registrando seu acesso ao painel...</div>
-        
-        <div id="loader-sinal" class="loader"></div>
-        <div id="status-texto" class="status-msg">Verificando canal com a planilha...</div>
-        
-        <div id="erro-texto" class="erro-box"></div>
-    </div>
-
+    <title>MRV SP - Carregando...</title>
     <script>
-        // CONFIGURAÇÃO DOS LINKS E SCRIPTS
-        const URL_WEB_APP_GOOGLE = "https://script.google.com/macros/s/AKfycbzFilsjEmRMeo1QJXIOX-0lUYtFeZKcMyvrebiSZu77P7r36vpmJe3WZSBdfQuzDms/exec"; 
-        const PAGINA_DESTINO = "desktop.html";
-
-        // Captura eHigieniza os parâmetros da URL recebida
-        const urlParams = new URLSearchParams(window.location.search);
-        const codigoGerente = urlParams.get('gerente') ? urlParams.get('gerente').trim() : null;
-
-        async function processarPortariaAcesso() {
-            const statusTexto = document.getElementById('status-texto');
-            const erroTexto = document.getElementById('erro-texto');
-            const loader = document.getElementById('loader-sinal');
-
-            // 1. Validação de segurança primária local
-            if (!codigoGerente) {
-                loader.style.display = "none";
-                statusTexto.style.color = "#e53e3e";
-                statusTexto.innerText = "Acesso Negado.";
-                erroTexto.innerHTML = "<strong>Código ausente:</strong> Use o link exclusivo fornecido pelo seu gerente regional para visualizar os mapas.";
-                erroTexto.style.display = "block";
-                return;
-            }
-
-            // 2. Monta a URL de envio com as informações que o Google Apps Script precisa ler
-            // Passamos o código, a ação de login e um timestamp para quebrar caches do servidor
-            const urlFinalDisparo = `${URL_WEB_APP_GOOGLE}?gerente=${encodeURIComponent(codigoGerente)}&acao=login&_ts=${new Date().getTime()}`;
-
-            try {
-                statusTexto.innerText = "Gravando logs de auditoria corporativa...";
-                
-                // 3. Executa o disparo em modo oculto blindado contra erros de CORS
-                await fetch(urlFinalDisparo, {
-                    method: "GET",
-                    mode: "no-cors",
-                    cache: "no-cache"
-                });
-
-                // Como o 'no-cors' não traz resposta legível por segurança, damos um delay de 800ms
-                // apenas para garantir que o navegador transmitiu os pacotes com sucesso para o Google
-                statusTexto.innerText = "Acesso liberado! Redirecionando...";
-                statusTexto.style.color = "#4a5568";
-                
-                setTimeout(() => {
-                    // 4. Redireciona o usuário para a aplicação principal mantendo as credenciais na URL
-                    window.location.href = `${PAGINA_DESTINO}?gerente=${encodeURIComponent(codigoGerente)}`;
-                }, 800);
-
-            } catch (erro) {
-                console.error("Falha no handshake com o servidor: ", erro);
-                loader.style.display = "none";
-                statusTexto.innerText = "Erro na validação do servidor.";
-                erroTexto.innerHTML = "Não foi possível sincronizar os registros de segurança com a planilha. Verifique sua conexão de rede.";
-                erroTexto.style.display = "block";
+        function redirecionar() {
+            // Se a tela for menor que 1024px, assume que é mobile/tablet
+            if (window.innerWidth < 1024) {
+                window.location.href = "mobile.html";
+            } else {
+                window.location.href = "desktop.html";
             }
         }
-
-        // Inicia o fluxo assim que o DOM estiver pronto
-        window.addEventListener('DOMContentLoaded', processarPortariaAcesso);
+        window.onload = redirecionar;
     </script>
+</head>
+<body style="background:#065e03; display:flex; align-items:center; justify-content:center; height:100vh; color:white; font-family:sans-serif;">
+    <p>Detectando dispositivo...</p>
 </body>
 </html>
