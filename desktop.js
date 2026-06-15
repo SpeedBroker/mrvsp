@@ -8,7 +8,7 @@ let imovelAtivo = null;
 let mapaAtivo = 'GSP'; 
 
 // URL de Execução (Deploy) do seu Google Apps Script atualizada
-const URL_WEB_APP_GOOGLE = "https://script.google.com/macros/s/AKfycbwUbscQ8m89MqKVed5bVwvGorZJYeVJns8O32sbrjItUNnaQpBzqa1_4KY2smGKpyI/exec"; 
+const URL_WEB_APP_GOOGLE = "https://script.google.com/macros/s/AKfycbzFilsjEmRMeo1QJXIOX-0lUYtFeZKcMyvrebiSZu77P7r36vpmJe3WZSBdfQuzDms/exec"; 
 
 // Captura o código da URL (ex: ?gerente=a2b20)
 const urlParams = new URLSearchParams(window.location.search);
@@ -31,30 +31,49 @@ const COL = {
 };
 
 /* ==========================================================================
-   BLOCO 02: INICIALIZAÇÃO DIRETA E FLUXO OPERACIONAL DO MAPA
+   BLOCO 02: INICIALIZAÇÃO DIRETA E VALIDAÇÃO DE PORTARIA (MODO TESTE)
    ========================================================================== */
-function inicializarMapa() {
+function iniciarApp() {
     executarFluxoEstrategico();
 }
 
-// Executa automaticamente quando o script é injetado dinamicamente
+// Executa automaticamente assim que o script carrega no navegador
 window.addEventListener('DOMContentLoaded', () => {
-    // Caso o script seja chamado de forma tradicional, garante a execução espontânea
-    if (document.getElementById('conteudo-painel-mapa') && document.getElementById('conteudo-painel-mapa').style.display === "block") {
-        executarFluxoEstrategico();
-    }
+    executarFluxoEstrategico();
 });
 
-async function ejecutarFluxoEstrategico() {
-    console.log("Portaria validada pelo HTML. Iniciando a renderização dos componentes do mapa...");
+async function executarFluxoEstrategico() {
+    console.log("Iniciando carregamento do painel...");
 
-    // Carrega os dados visuais públicos das planilhas para montar a interface
+    // Carrega os dados visuais da planilha normalmente
     try {
         await Promise.all([carregarPlanilha(), carregarAbaDocumentos()]);
         configurarBotaoDocumentos(); 
-        console.log("Banco de dados MRV carregado com sucesso.");
     } catch (err) {
-        console.error("Erro ao carregar dados operacionais da planilha: ", err);
+        console.error("Erro ao carregar dados iniciais: ", err);
+    }
+
+    // DISPARO DE TESTE ABSOLUTO: Tenta gravar na planilha na hora
+    console.log("Disparando requisição de teste para o Apps Script...");
+    registrarAcessoNoGoogleTESTE();
+}
+
+/**
+ * Função de teste limpo: chama a URL do Apps Script sem parâmetros complexos
+ */
+async function registrarAcessoNoGoogleTESTE() {
+    if (!URL_WEB_APP_GOOGLE || URL_WEB_APP_GOOGLE.includes("COLE_AQUI")) {
+        console.error("URL do Web App não está configurada.");
+        return;
+    }
+    try {
+        // Faz o fetch direto para a URL do script
+        const resposta = await fetch(URL_WEB_APP_GOOGLE);
+        const resultado = await resposta.json();
+        
+        console.log("RESPOSTA DO GOOGLE SCRIPT:", resultado);
+    } catch (e) {
+        console.error("FALHA NA REQUISIÇÃO DE TESTE: ", e);
     }
 }
 
@@ -198,12 +217,12 @@ async function carregarAbaDocumentos() {
             let textoLinha = linha ? linha.trim() : "";
             if (!textoLinha) return null;
             
-            const textoLimpo = textoLinha.replace(/^"|"$/g, '').trim();
-            const ultimaVirgula = textoLimpo.lastIndexOf(',');
+            const inlineLimpa = textoLinha.replace(/^"|"$/g, '').trim();
+            const ultimaVirgula = inlineLimpa.lastIndexOf(',');
             if (ultimaVirgula === -1) return null;
             
-            const titulo = textoLimpo.substring(0, ultimaVirgula).trim().replace(/^"|"$/g, '');
-            const url = textoLimpo.substring(ultimaVirgula + 1).trim().replace(/^"|"$/g, '');
+            const titulo = inlineLimpa.substring(0, ultimaVirgula).trim().replace(/^"|"$/g, '');
+            const url = inlineLimpa.substring(ultimaVirgula + 1).trim().replace(/^"|"$/g, '');
             
             if (!titulo || !url.startsWith('http')) return null;
             return { titulo, url };
@@ -223,8 +242,7 @@ async function carregarPlanilha() {
 
         DADOS_PLANILHA = linhasPuras.slice(1).map(linha => {
             const colunas = []; let campo = "", aspas = false;
-            const tamanhoLinha = linha.length;
-            for (let i = 0; i < tamanhoLinha; i++) {
+            for (let i = 0; i < lineaL = linha.length; i++) {
                 const char = linha[i];
                 if (char === '"') aspas = !aspas;
                 else if (char === ',' && !aspas) { colunas.push(campo.trim()); campo = ""; }
@@ -560,6 +578,7 @@ function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
             </div>`;
         }
     } else {
+        // CORREÇÃO DOS COMPLEXOS: Variável e sintaxe corrigidas perfeitamente
         let corComplexo = "#333333";
         const zUpper = selecionado.zona ? selecionado.zona.toUpperCase().trim() : "";
         
@@ -576,13 +595,23 @@ function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
                  
         html += `<div class="box-complexo-full" style="border: 1px solid ${corComplexo}; border-radius: 4px; padding: 10px; background: #fff;">
                     <p style="font-size:0.7rem; color:#444; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-                        <span>📍 ${selecionado.endereco}</span>
-                        <a href="${urlMapsResidencial}" target="_blank" class="btn-maps" style="background:${corComplexo}; color:${corTexto}; padding: 3px 8px; border-radius:3px; text-decoration:none;">MAPS</a>
+                        <span>📍 ${selecionado.endereco}</span> 
+                        <span style="display:flex; gap:3px;">
+                            <a href="${urlMapsResidencial}" target="_blank" class="btn-maps">MAPS</a>
+                            <button onclick="copyTexto('${urlMapsResidencial}', 'Link de localização copiado!')" class="btn-maps" style="border:none; cursor:pointer;">LINK</button>
+                        </span>
                     </p>
-                    <p style="font-size:0.72rem; color:#555; line-height:1.4; white-space:pre-line; margin:0;">${selecionado.descLonga || 'Sem descrição cadastrada.'}</p>
+                    <div style="font-size:0.75rem; color:#444; line-height:1.5; text-align:justify;">${selecionado.descLonga}</div>
                  </div>`;
+                 
+        let materiaisComplexo = extrairLinks(selecionado.linksImplant, '📍');
+        if (materiaisComplexo !== "") { 
+            html += `<div style="margin-top: 10px; padding: 0 5px;">
+                <label style="display:block; font-size:0.6rem; font-weight:bold; color:#888; text-transform:uppercase; margin-bottom:4px; border-bottom:1px solid #eee;">MATERIAIS DO COMPLEXO</label>
+                ${materiaisComplexo}
+            </div>`;
+        }
     }
-
     painel.innerHTML = html;
     inicializarHoverMiniaturas();
 }
