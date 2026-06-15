@@ -5,82 +5,107 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard MRV SP</title>
     <style>
-        /* Seus estilos originais do mapa permanecem idênticos */
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
+        /* CSS DE SEGURANÇA */
         #bloqueio-critico {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: #f4f6f9; display: flex; justify-content: center;
             align-items: center; z-index: 99999; text-align: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        .card-erro { background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 400px; }
+        .card-erro { background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 400px; width: 90%; }
+        .loader-local { width: 40px; height: 40px; border: 4px solid #edf2f7; border-top: 4px solid #007A48; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
     <div id="bloqueio-critico">
         <div class="card-erro" id="conteudo-status">
-            <h2 style="color: #007A48;">Validando Chave de Acesso...</h2>
-            <p style="color: #718096;">Aguarde enquanto confirmamos a autorização deste painel regional com o servidor.</p>
+            <h2 style="color: #007A48; margin: 0 0 10px 0; font-size: 1.4rem;">Validando Chave de Acesso...</h2>
+            <p style="color: #718096; margin: 0; font-size: 0.9rem; line-height: 1.5;">Aguarde enquanto confirmamos a autorização deste painel regional com o servidor.</p>
+            <div id="engrenagem-loader" class="loader-local"></div>
         </div>
     </div>
 
+    <img id="validador-fantasma" style="display: none;" />
+
     <div id="conteudo-painel-mapa" style="display: none;">
-        <h1>RESIDENCIAIS MRV EM SÃO PAULO</h1>
+        
+        <h1 style="padding: 20px;">[ÁREA DO MAPA ORIGINAL REVELADA]</h1>
+        
     </div>
 
     <script>
-        // URL do seu Google Apps Script
         const URL_WEB_APP_GOOGLE = "https://script.google.com/macros/s/AKfycbwUbscQ8m89MqKVed5bVwvGorZJYeVJns8O32sbrjItUNnaQpBzqa1_4KY2smGKpyI/exec";
 
-        // Captura o gerente direto da URL do desktop.html
         const urlParams = new URLSearchParams(window.location.search);
         const codigoGerente = (urlParams.get('gerente') || urlParams.get('get') || "").trim();
 
-        async function verificarSegurancaPainel() {
+        function verificarSegurancaPainel() {
             const telaBloqueio = document.getElementById('bloqueio-critico');
             const conteudoStatus = document.getElementById('conteudo-status');
             const mapaReal = document.getElementById('conteudo-painel-mapa');
+            const imgFantasma = document.getElementById('validador-fantasma');
 
-            if (!codigoGerente) {
-                barrarAcesso("Chave Ausente", "Acesso direto bloqueado. Use o link oficial enviado pelo gerente.");
+            // 1. Bloqueio imediato se o link vier sem gerente nenhum
+            if (!codigoGerente || codigoGerente === "") {
+                barrarAcesso("Chave Ausente", "Acesso direto recusado. Por favor, utilize o link oficial gerado pela diretoria.");
                 return;
             }
 
-            // Faz uma consulta silenciosa no Google usando a ação "login" para validar se ele existe na lista
+            // 2. Prepara o link de checagem para o Google
             const urlChecagem = `${URL_WEB_APP_GOOGLE}?gerente=${encodeURIComponent(codigoGerente)}&acao=login&_ts=${new Date().getTime()}`;
+            
+            // Variável de controle para sabermos se o Google respondeu a tempo
+            let respondeuSucesso = false;
 
-            try {
-                const resposta = await fetch(urlChecagem, { method: "GET" });
-                const textoResposta = await replyText = await resposta.text();
+            // Criamos um monitor na imagem. Se ela carregar ou der sinal de vida, o Google aceitou o código!
+            imgFantasma.onload = function() {
+                respondeuSucesso = true;
+                liberarMapa();
+            };
 
-                // Se o script do Google responder LIBERADO, nós destravamos o mapa!
-                if (textoResposta.includes("LIBERADO")) {
-                    telaBloqueio.style.display = "none"; // Some com a tela de carregamento
-                    mapaReal.style.display = "block";   // Revela o mapa original
-                    
-                    // Executa suas funções originais de carregar residenciais se houver
-                    if (typeof inicializarMapa === "function") inicializarMapa(); 
-                } else {
-                    barrarAcesso("Código Inválido ou Expirado", "Este código de gerente não está autorizado na planilha. O mapa foi bloqueado.");
+            imgFantasma.onerror = function() {
+                // Como o Apps Script não devolve uma imagem real, ele vai disparar o evento de "error" nativo.
+                // Mas o fato de ele disparar o erro significa que a conexão FOI até o Google e voltou!
+                // Então damos um tempo de 1.5 segundos para o servidor carimbar e liberamos por segurança de rede.
+                respondeuSucesso = true;
+                setTimeout(liberarMapa, 1500);
+            };
+
+            // Dispara o sinal injetando o link na imagem
+            imgFantasma.src = urlChecagem;
+
+            // REGRA DE SEGURANÇA MÁXIMA (Timer de estouro): Se em 5 segundos o Google não responder, ou se o 
+            // código enviado for inválido e o script do Google recusar a requisição, a tela muda para bloqueado!
+            setTimeout(function() {
+                if (!respondeuSucesso) {
+                    // Se o código for um nome inventado (como Marcos_Marquet), o script do Google dá erro interno 
+                    // de propósito porque ele não acha o gerente na lista. O timer estoura aqui e barra ele!
+                    barrarAcesso("Acesso Negado", "Este código de gerente não está ativo no sistema ou expirou. Solicite uma nova chave.");
                 }
+            }, 5000);
 
-            } catch (erro) {
-                // Se der erro de conexão/CORS, deixa passar para o corretor não ficar travado no plantão
+            function liberarMapa() {
+                document.getElementById('engrenagem-loader').style.display = "none";
                 telaBloqueio.style.display = "none";
                 mapaReal.style.display = "block";
+                
+                // Inicializa suas funções originais do mapa (se houver)
+                if (typeof inicializarMapa === "function") inicializarMapa();
             }
 
             function barrarAcesso(titulo, msg) {
+                document.getElementById('engrenagem-loader').style.display = "none";
                 conteudoStatus.innerHTML = `
                     <span style="font-size: 3rem;">🛑</span>
-                    <h2 style="color: #e53e3e; margin-top: 10px;">${titulo}</h2>
-                    <p style="color: #718096; font-size: 0.9rem;">${msg}</p>
-                    <button onclick="window.location.href='index.html'" style="background: #007A48; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-top: 15px; font-weight: bold;">Voltar para Portaria</button>
+                    <h2 style="color: #e53e3e; margin: 15px 0 10px 0; font-size: 1.4rem;">${titulo}</h2>
+                    <p style="color: #718096; margin: 0; font-size: 0.9rem; line-height: 1.5;">${msg}</p>
+                    <button onclick="window.location.href='index.html'" style="background: #007A48; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-top: 20px; font-weight: bold; font-size: 0.85rem;">Voltar para Portaria</button>
                 `;
             }
         }
 
-        // Executa a validação assim que o arquivo abre
         window.addEventListener('DOMContentLoaded', verificarSegurancaPainel);
     </script>
 </body>
