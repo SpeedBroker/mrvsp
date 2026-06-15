@@ -2,7 +2,6 @@
 // CAMADA INTERNA DE CONTROLE DE ACESSO - SPEEDBROKER (MÓDULO DE SEGURANÇA)
 // =========================================================================
 (function() {
-  // URL DO SEU GOOGLE APPS SCRIPT
   const URL_API_GOOGLE = "https://script.google.com/macros/s/AKfycbwXlu0K9kGfFa0yxhhsUoX5MKz3clEOUPUSpuh_2zcS5eqtWzMLIrQezwumD2sd9m4/exec"; 
 
   function obterParametroUrl(nome) {
@@ -11,28 +10,12 @@
     return resultados === null ? '' : decodeURIComponent(resultados[1].replace(/\+/g, ' '));
   }
 
-  // Captura o userID da URL ou cria um persistente para identificar o dispositivo do corretor
-  function obterOuGerarUserID() {
-    let urlId = obterParametroUrl('userID');
-    if (urlId && urlId.trim() !== "") {
-      return urlId.trim();
-    }
-    
-    let localId = localStorage.getItem('speedbroker_userid');
-    if (!localId) {
-      localId = 'usr_' + Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
-      localStorage.setItem('speedbroker_userid', localId);
-    }
-    return localId;
-  }
-
   const codigoRef = obterParametroUrl('ref');
-  const idDoUsuario = obterOuGerarUserID();
-  
   const telaBloqueio = document.getElementById('bloqueio-seguranca');
   const containerResultado = document.getElementById('resultado-validacao');
   const iconeStatus = document.getElementById('icone-status');
 
+  // 1. BARRA IMEDIATAMENTE SE NÃO HOUVER O CÓDIGO REF
   if (!codigoRef) {
     if (iconeStatus) {
       iconeStatus.innerHTML = `
@@ -46,67 +29,119 @@
       containerResultado.innerHTML = `
         <h2 style="color: #d93025; margin-bottom: 5px;">Acesso Recusado</h2>
         <p style="color: #666; font-size: 14px;">Chave inválida ou ausente. Você precisa do link de acesso oficial fornecido pelo seu gerente regional.</p>
-        <p style="color: #a0a0a0; font-size: 12px; margin-top: 20px;">Portaria fechada.</p>
       `;
     }
     throw new Error("Acesso interrompido: Sem chave de referência válida.");
   }
 
-  // URL enviando dinamicamente o 'ref' e o 'userID' para a sua planilha/API
-  const urlFinal = `${URL_API_GOOGLE}?ref=${codigoRef}&userID=${idDoUsuario}&_cb=${new Date().getTime()}`;
+  // 2. VERIFICA SE O CORRETOR JÁ SE IDENTIFICOU ANTES NESTE NAVEGADOR
+  let nomeCorretor = localStorage.getItem('speedbroker_username');
 
-  fetch(urlFinal)
-    .then(response => {
-      if (!response.ok) throw new Error('Erro HTTP ' + response.status);
-      return response.json();
-    })
-    .then(dados => {
-      if (dados.status === "autorizado") {
-        console.log(`Acesso permitido para equipe: ${dados.gerente} | Usuário: ${idDoUsuario}`);
+  if (!nomeCorretor) {
+    // Se não houver nome salvo, transforma a tela de validação em um formulário de identificação simples
+    if (iconeStatus) {
+      iconeStatus.innerHTML = `
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" fill="#004d24"/>
+            <path d="M12 11C13.6569 11 15 9.65685 15 8C15 6.34315 13.6569 5 12 5C10.3431 5 9 6.34315 9 8C9 9.65685 10.3431 11 12 11Z" fill="white"/>
+            <path d="M12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="white"/>
+        </svg>
+      `;
+    }
+    if (containerResultado) {
+      containerResultado.innerHTML = `
+        <h2 style="color: #004d24; margin-bottom: 10px; font-size: 1.3rem;">Primeiro Acesso</h2>
+        <p style="color: #555; font-size: 13px; margin-bottom: 15px;">Por favor, digite seu nome único da MRV para ativar o seu painel.</p>
+        <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;">
+          <input type="text" id="input-nome-corretor" placeholder="Ex: Carlos, Antônio..." style="width: 80%; padding: 10px; border: 2px solid #ccc; border-radius: 4px; font-size: 14px; text-align: center; outline: none; transition: border-color 0.2s;">
+          <button id="btn-salvar-corretor" style="background-color: #febd11; color: #004d24; font-weight: bold; border: none; padding: 10px 25px; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-size: 12px; width: 80%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">Acessar Dashboard</button>
+        </div>
+      `;
+
+      // Adiciona estilo de foco dinâmico no input
+      const inputEl = document.getElementById('input-nome-corretor');
+      if (inputEl) {
+        inputEl.addEventListener('focus', () => inputEl.style.borderColor = '#004d24');
+        inputEl.addEventListener('blur', () => inputEl.style.borderColor = '#ccc');
+      }
+
+      // Aguarda o clique no botão para registrar e dar continuidade
+      document.getElementById('btn-salvar-corretor').addEventListener('click', function() {
+        const nomeDigitado = document.getElementById('input-nome-corretor').value.trim();
         
-        if (telaBloqueio) {
-          telaBloqueio.style.transition = "opacity 0.4s ease";
-          telaBloqueio.style.opacity = "0";
-          setTimeout(() => {
-            telaBloqueio.style.display = "none";
-          }, 400);
+        if (!nomeDigitado || nomeDigitado.length < 2) {
+          alert("Por favor, digite um nome válido para continuar.");
+          return;
         }
-      } else {
+
+        // Salva o nome tratado e recarrega a validação
+        localStorage.setItem('speedbroker_username', nomeDigitado);
+        containerResultado.innerHTML = `<h2 style="margin-top: 0; color: #444;">Processando...</h2><p>Validando credenciais de ${nomeDigitado}...</p>`;
+        validarAcessoServidor(codigoRef, nomeDigitado);
+      });
+    }
+  } else {
+    // Se o corretor já for conhecido deste navegador, executa direto a validação
+    validarAcessoServidor(codigoRef, nomeCorretor);
+  }
+
+  // 3. FUNÇÃO QUE ENVIA O CÓDIGO E O NOME DO CORRETOR PARA A SUA PLANILHA
+  function validarAcessoServidor(ref, usuario) {
+    const urlFinal = `${URL_API_GOOGLE}?ref=${ref}&userID=${encodeURIComponent(usuario)}&_cb=${new Date().getTime()}`;
+
+    fetch(urlFinal)
+      .then(response => {
+        if (!response.ok) throw new Error('Erro HTTP ' + response.status);
+        return response.json();
+      })
+      .then(dados => {
+        if (dados.status === "autorizado") {
+          console.log(`Acesso permitido para equipe: ${dados.gerente} | Corretor: ${usuario}`);
+          
+          if (telaBloqueio) {
+            telaBloqueio.style.transition = "opacity 0.4s ease";
+            telaBloqueio.style.opacity = "0";
+            setTimeout(() => {
+              telaBloqueio.style.display = "none";
+            }, 400);
+          }
+        } else {
+          if (iconeStatus) {
+            iconeStatus.innerHTML = `
+              <svg width="70" height="70" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="#e65100"/>
+                  <path d="M12 8V13M12 16H12.01" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+              </svg>
+            `;
+          }
+          if (containerResultado) {
+            containerResultado.innerHTML = `
+              <h2 style="color: #e65100; margin-bottom: 5px;">Chave Expirada ou Inválida</h2>
+              <p style="color: #666; font-size: 14px;">O código de acesso informado não está cadastrado ou já foi renovado pelo gerente.</p>
+              <p style="color: #999; font-size: 11px; margin-top: 15px;">Motivo: ${dados.reason}</p>
+            `;
+          }
+          document.getElementById('lista-imoveis').innerHTML = '';
+          document.getElementById('caixa-a').innerHTML = '';
+        }
+      })
+      .catch(erro => {
         if (iconeStatus) {
           iconeStatus.innerHTML = `
             <svg width="70" height="70" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="#e65100"/>
-                <path d="M12 8V13M12 16H12.01" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="12" cy="12" r="10" fill="#5e503f"/>
+                <path d="M10 10L14 14M14 10L10 14" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
             </svg>
           `;
         }
         if (containerResultado) {
           containerResultado.innerHTML = `
-            <h2 style="color: #e65100; margin-bottom: 5px;">Chave Expirada ou Inválida</h2>
-            <p style="color: #666; font-size: 14px;">O código de acesso informado não está cadastrado ou já foi renovado pelo gerente.</p>
-            <p style="color: #999; font-size: 11px; margin-top: 15px;">Motivo: ${dados.reason}</p>
+            <h2 style="color: #5e503f; margin-bottom: 5px;">Erro de Rede</h2>
+            <p style="color: #666; font-size: 14px;">Não foi possível validar suas credenciais com o servidor. Verifique sua conexão.</p>
           `;
         }
-        document.getElementById('lista-imoveis').innerHTML = '';
-        document.getElementById('caixa-a').innerHTML = '';
-      }
-    })
-    .catch(erro => {
-      if (iconeStatus) {
-        iconeStatus.innerHTML = `
-          <svg width="70" height="70" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="12" r="10" fill="#5e503f"/>
-              <path d="M10 10L14 14M14 10L10 14" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-          </svg>
-        `;
-      }
-      if (containerResultado) {
-        containerResultado.innerHTML = `
-          <h2 style="color: #5e503f; margin-bottom: 5px;">Erro de Rede</h2>
-          <p style="color: #666; font-size: 14px;">Não foi possível validar suas credenciais com o servidor. Verifique sua conexão.</p>
-        `;
-      }
-    });
+      });
+  }
 })();
 
 
