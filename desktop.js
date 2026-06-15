@@ -1,3 +1,96 @@
+// =========================================================================
+// CAMADA INTERNA DE CONTROLE DE ACESSO - SPEEDBROKER
+// =========================================================================
+(function() {
+  // ADICIONE A SUA URL DO GOOGLE APPS SCRIPT ATUALIZADO AQUI
+  const URL_API_GOOGLE = "https://script.google.com/macros/s/AKfycbwXlu0K9kGfFa0yxhhsUoX5MKz3clEOUPUSpuh_2zcS5eqtWzMLIrQezwumD2sd9m4/exec"; 
+
+  function obterParametroUrl(nome) {
+    var regex = new RegExp('[\\?&]' + nome + '=([^&#]*)');
+    var resultados = regex.exec(location.search);
+    return resultados === null ? '' : decodeURIComponent(resultados[1].replace(/\+/g, ' '));
+  }
+
+  const codigoRef = obterParametroUrl('ref');
+  const telaBloqueio = document.getElementById('bloqueio-seguranca');
+  const containerResultado = document.getElementById('resultado-validacao');
+  const iconeStatus = document.getElementById('icone-status');
+
+  if (!codigoRef) {
+    if (iconeStatus) {
+      iconeStatus.innerHTML = `
+        <svg width="70" height="70" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="#ff4d4d"/>
+            <path d="M8 12H16" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      `;
+    }
+    if (containerResultado) {
+      containerResultado.innerHTML = `
+        <h2 style="color: #d93025; margin-bottom: 5px;">Acesso Recusado</h2>
+        <p style="color: #666; font-size: 14px;">Chave inválida ou ausente. Você precisa do link de acesso oficial fornecido pelo seu gerente regional.</p>
+        <p style="color: #a0a0a0; font-size: 12px; margin-top: 20px;">Portaria fechada.</p>
+      `;
+    }
+    throw new Error("Acesso interrompido: Sem chave de referência válida.");
+  }
+
+  const urlFinal = `${URL_API_GOOGLE}?ref=${codigoRef}&_cb=${new Date().getTime()}`;
+
+  fetch(urlFinal)
+    .then(response => {
+      if (!response.ok) throw new Error('Erro HTTP ' + response.status);
+      return response.json();
+    })
+    .then(dados => {
+      if (dados.status === "autorizado") {
+        console.log(`Acesso permitido para equipe: ${dados.gerente}`);
+        
+        if (telaBloqueio) {
+          telaBloqueio.style.transition = "opacity 0.4s ease";
+          telaBloqueio.style.opacity = "0";
+          setTimeout(() => {
+            telaBloqueio.style.display = "none";
+          }, 400);
+        }
+      } else {
+        if (iconeStatus) {
+          iconeStatus.innerHTML = `
+            <svg width="70" height="70" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="#e65100"/>
+                <path d="M12 8V13M12 16H12.01" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          `;
+        }
+        if (containerResultado) {
+          containerResultado.innerHTML = `
+            <h2 style="color: #e65100; margin-bottom: 5px;">Chave Expirada ou Inválida</h2>
+            <p style="color: #666; font-size: 14px;">O código de acesso informado não está cadastrado ou já foi renovado pelo gerente.</p>
+            <p style="color: #999; font-size: 11px; margin-top: 15px;">Motivo: ${dados.reason}</p>
+          `;
+        }
+        document.getElementById('lista-imoveis').innerHTML = '';
+        document.getElementById('caixa-a').innerHTML = '';
+      }
+    })
+    .catch(erro => {
+      if (iconeStatus) {
+        iconeStatus.innerHTML = `
+          <svg width="70" height="70" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" fill="#5e503f"/>
+              <path d="M10 10L14 14M14 10L10 14" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        `;
+      }
+      if (containerResultado) {
+        containerResultado.innerHTML = `
+          <h2 style="color: #5e503f; margin-bottom: 5px;">Erro de Rede</h2>
+          <p style="color: #666; font-size: 14px;">Não foi possível validar suas credenciais com o servidor. Verifique sua conexão.</p>
+        `;
+      }
+    });
+})();
+
 /* ==========================================================================
    BLOCO 01: CONFIGURAÇÕES E VARIÁVEIS GLOBAIS
    ========================================================================== */
