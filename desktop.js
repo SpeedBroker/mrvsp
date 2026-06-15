@@ -1,8 +1,8 @@
 // =========================================================================
-// CAMADA INTERNA DE CONTROLE DE ACESSO - SPEEDBROKER
+// CAMADA INTERNA DE CONTROLE DE ACESSO - SPEEDBROKER (MÓDULO DE SEGURANÇA)
 // =========================================================================
 (function() {
-  // ADICIONE A SUA URL DO GOOGLE APPS SCRIPT ATUALIZADO AQUI
+  // URL DO SEU GOOGLE APPS SCRIPT
   const URL_API_GOOGLE = "https://script.google.com/macros/s/AKfycbwXlu0K9kGfFa0yxhhsUoX5MKz3clEOUPUSpuh_2zcS5eqtWzMLIrQezwumD2sd9m4/exec"; 
 
   function obterParametroUrl(nome) {
@@ -11,7 +11,24 @@
     return resultados === null ? '' : decodeURIComponent(resultados[1].replace(/\+/g, ' '));
   }
 
+  // Captura o userID da URL ou cria um persistente para identificar o dispositivo do corretor
+  function obterOuGerarUserID() {
+    let urlId = obterParametroUrl('userID');
+    if (urlId && urlId.trim() !== "") {
+      return urlId.trim();
+    }
+    
+    let localId = localStorage.getItem('speedbroker_userid');
+    if (!localId) {
+      localId = 'usr_' + Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
+      localStorage.setItem('speedbroker_userid', localId);
+    }
+    return localId;
+  }
+
   const codigoRef = obterParametroUrl('ref');
+  const idDoUsuario = obterOuGerarUserID();
+  
   const telaBloqueio = document.getElementById('bloqueio-seguranca');
   const containerResultado = document.getElementById('resultado-validacao');
   const iconeStatus = document.getElementById('icone-status');
@@ -35,7 +52,8 @@
     throw new Error("Acesso interrompido: Sem chave de referência válida.");
   }
 
-  const urlFinal = `${URL_API_GOOGLE}?ref=${codigoRef}&_cb=${new Date().getTime()}`;
+  // URL enviando dinamicamente o 'ref' e o 'userID' para a sua planilha/API
+  const urlFinal = `${URL_API_GOOGLE}?ref=${codigoRef}&userID=${idDoUsuario}&_cb=${new Date().getTime()}`;
 
   fetch(urlFinal)
     .then(response => {
@@ -44,7 +62,7 @@
     })
     .then(dados => {
       if (dados.status === "autorizado") {
-        console.log(`Acesso permitido para equipe: ${dados.gerente}`);
+        console.log(`Acesso permitido para equipe: ${dados.gerente} | Usuário: ${idDoUsuario}`);
         
         if (telaBloqueio) {
           telaBloqueio.style.transition = "opacity 0.4s ease";
@@ -90,6 +108,8 @@
       }
     });
 })();
+
+
 
 /* ==========================================================================
    BLOCO 01: CONFIGURAÇÕES E VARIÁVEIS GLOBAIS
