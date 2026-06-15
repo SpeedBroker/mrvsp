@@ -78,78 +78,76 @@
         function verificarSegurancaPainel() {
             const telaBloqueio = document.getElementById('bloqueio-critico');
             const conteudoStatus = document.getElementById('conteudo-status');
-            const mapaReal = document.getElementById('conteudo-painel-mapa');
 
             if (!codigoGerente) {
                 barrarAcesso("Chave Ausente", "Você tentou acessar sem um código de gerente válido.");
                 return;
             }
 
-            const urlChecagem = `${URL_WEB_APP_GOOGLE}?gerente=${encodeURIComponent(codigoGerente)}&acao=login&_ts=${new Date().getTime()}`;
+            // Cria um nome de função único e temporário para receber os dados do Google
+            const nomeFuncaoUnica = "validarAcessoMRV_" + Math.floor(Math.random() * 100000);
+            
+            // Define o que acontece quando o Google responde de volta
+            window[nomeFuncaoUnica] = function(resposta) {
+                // Limpa o script gerado e a função da memória
+                document.getElementById('script-seguranca-temp').remove();
+                delete window[nomeFuncaoUnica];
 
-            // Executa a chamada assíncrona padrão via Fetch API (Sem quebrar regras do GitHub)
-            fetch(urlChecagem, { method: "GET", mode: "cors" })
-                .then(response => response.text())
-                .then(htmlTexto => {
-                    // Como o Google responde dentro de uma casca HTML, limpamos as tags para ler o JSON
-                    const textoLimpo = htmlTexto.replace(/<[^>]*>/g, "").trim();
-                    try {
-                        const dadosResposta = JSON.parse(textoLimpo);
-                        
-                        if (dadosResposta && dadosResposta.status === "sucesso") {
-                            liberarMapa();
-                        } else {
-                            barrarAcesso("Acesso Recusado", "Chave inválida. Certifique-se de usar o link enviado pela diretoria.");
-                        }
-                    } catch (e) {
-                        // Fallback: se o retorno vier como texto puro ("LIBERADO") por falta de atualização do script
-                        if (textoLimpo.includes("LIBERADO")) {
-                            liberarMapa();
-                        } else {
-                            barrarAcesso("Acesso Negado", "Código incorreto ou sem autorização ativa.");
-                        }
-                    }
-                })
-                .catch(erro => {
-                    console.error("Erro na requisição:", erro);
-                    barrarAcesso("Erro de Conexão", "Não foi possível autenticar com o servidor da planilha.");
-                });
+                if (resposta && resposta.status === "sucesso") {
+                    liberarMapa();
+                } else {
+                    barrarAcesso("Acesso Recusado", "Chave inválida. Certifique-se de usar o link enviado pela diretoria.");
+                }
+            };
 
-            function liberarMapa() {
-                telaBloqueio.style.display = "none";
-                mapaReal.style.display = "block";
-                
-                // Carga limpa e síncrona dos motores visuais do painel
-                const scriptVetores = document.createElement('script');
-                scriptVetores.src = 'mapa-SP.js';
-                document.body.appendChild(scriptVetores);
+            // Injeta uma tag script apontando para o Google (Isso mata qualquer bloqueio de CORS)
+            const scriptTag = document.createElement('script');
+            scriptTag.id = 'script-seguranca-temp';
+            scriptTag.src = `${URL_WEB_APP_GOOGLE}?gerente=${encodeURIComponent(codigoGerente)}&acao=login&callback=${nomeFuncaoUnica}&_ts=${new Date().getTime()}`;
+            
+            // Se houver falha de rede ou link quebrado do Google
+            scriptTag.onerror = function() {
+                barrarAcesso("Erro de Conexão", "Não foi possível estabelecer contato com o servidor de validação.");
+            };
 
-                scriptVetores.onload = function() {
-                    const scriptAnuncios = document.createElement('script');
-                    scriptAnuncios.src = 'anúncios.js';
-                    document.body.appendChild(scriptAnuncios);
-
-                    scriptAnuncios.onload = function() {
-                        const scriptEngine = document.createElement('script');
-                        scriptEngine.src = 'desktop.js';
-                        document.body.appendChild(scriptEngine);
-                    };
-                };
-            }
-
-            function barrarAcesso(titulo, msg) {
-                const loader = document.getElementById('engrenagem-loader');
-                if (loader) loader.style.display = "none";
-                
-                conteudoStatus.innerHTML = `
-                    <span style="font-size: 3rem;">🛑</span>
-                    <h2 style="color: #e53e3e; margin: 15px 0 10px 0; font-size: 1.4rem;">${titulo}</h2>
-                    <p style="color: #718096; margin: 0; font-size: 0.9rem; line-height: 1.5;">${msg}</p>
-                    <p style="color: #e53e3e; font-weight: bold; font-size: 0.85rem; margin-top: 15px;">Portaria fechada.</p>
-                `;
-            }
+            document.body.appendChild(scriptTag);
         }
 
+        function liberarMapa() {
+            document.getElementById('bloqueio-critico').style.display = "none";
+            document.getElementById('conteudo-painel-mapa').style.display = "block";
+            
+            // Carga sequencial segura dos scripts de lógica interna para não quebrar o layout
+            const scriptVetores = document.createElement('script');
+            scriptVetores.src = 'mapa-SP.js';
+            document.body.appendChild(scriptVetores);
+
+            scriptVetores.onload = function() {
+                const scriptAnuncios = document.createElement('script');
+                scriptAnuncios.src = 'anúncios.js';
+                document.body.appendChild(scriptAnuncios);
+
+                scriptAnuncios.onload = function() {
+                    const scriptEngine = document.createElement('script');
+                    scriptEngine.src = 'desktop.js';
+                    document.body.appendChild(scriptEngine);
+                };
+            };
+        }
+
+        function barrarAcesso(titulo, msg) {
+            const loader = document.getElementById('engrenagem-loader');
+            if (loader) loader.style.display = "none";
+            
+            document.getElementById('conteudo-status').innerHTML = `
+                <span style="font-size: 3rem;">🛑</span>
+                <h2 style="color: #e53e3e; margin: 15px 0 10px 0; font-size: 1.4rem;">${titulo}</h2>
+                <p style="color: #718096; margin: 0; font-size: 0.9rem; line-height: 1.5;">${msg}</p>
+                <p style="color: #e53e3e; font-weight: bold; font-size: 0.85rem; margin-top: 15px;">Portaria fechada.</p>
+            `;
+        }
+
+        // Executa a validação assim que a página terminar de carregar os elementos básicos
         window.addEventListener('DOMContentLoaded', verificarSegurancaPainel);
     </script>
 </body>
