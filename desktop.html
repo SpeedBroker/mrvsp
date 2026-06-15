@@ -88,6 +88,21 @@
 </head>
 <body>
 
+    <div id="bloqueio-seguranca" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f4f4f9; color: #333; z-index: 999999; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: Arial, sans-serif;">
+        <div style="max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #eef0f2; text-align: center;">
+            <div id="icone-status" style="margin-bottom: 20px;">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" fill="#e0e0e0"/>
+                    <path d="M12 8V12M12 16H12.01" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div id="resultado-validacao">
+                <h2 style="margin-top: 0; color: #444;">Processando...</h2>
+                <p>Conectando ao servidor de licenças da MRV.</p>
+            </div>
+        </div>
+    </div>
+
     <div class="header">
         <div class="titulo-mrv-centro">
             RESIDENCIAIS MRV EM SÃO PAULO - MAI/26
@@ -143,7 +158,7 @@
         </div>
     </div>
 
-<script src="mapa-SP.js" defer></script>
+    <script src="mapa-SP.js" defer></script>
     <script src="desktop.js" defer></script>
     <script src="anuncios.js" defer></script>
 
