@@ -72,31 +72,75 @@
     </div>
 
     <script>
+        // SUAS CONFIGURAÇÕES - Cole aqui a URL exata do seu Web App do Google Apps Script
+        const URL_API_GOOGLE = "COLE_AQUI_A_URL_DO_SEU_WEB_APP";
+
         function obterParametroUrl(nome) {
             var regex = new RegExp('[\\?&]' + nome + '=([^&#]*)');
             var resultados = regex.exec(location.search);
             return resultados === null ? '' : decodeURIComponent(resultados[1].replace(/\+/g, ' '));
         }
 
-        // Captura o código "?ref=" da URL
         const ref = obterParametroUrl('ref');
         const painel = document.getElementById('painel-status');
 
-        if (ref) {
-            // Cenário A: Possui o código. Avisa o usuário e redireciona para a tela principal
-            painel.innerHTML = `
-                <div class="spinner" style="border-top-color: var(--mrv-laranja);"></div>
-                <h2 style="color: var(--mrv-verde);">Acesso Identificado!</h2>
-                <p>Carregando o painel de residenciais da MRV SP...</p>
-            `;
-            
-            // Aguarda 1.2 segundos para dar um feedback visual profissional e redireciona
-            setTimeout(() => {
-                window.location.href = `desktop.html?ref=${ref}`;
-            }, 1200);
-
+        if (!ref) {
+            // Cenário A: Sem código na URL -> Bloqueio imediato
+            exibirAcessoRecusado("Acesso Recusado", "Você tentou acessar a URL direta sem o código do seu gerente regional. Solicite o link oficial.");
         } else {
-            // Cenário B: Tentou burlar ou acessar a URL pura. Bloqueia na hora!
+            // Cenário B: Possui código -> Vamos verificar a memória do navegador (localStorage)
+            const hoje = new Date().toISOString().slice(0, 10); // Formato: AAAA-MM-DD
+            const chaveChaveiro = `mrv_acesso_${ref}`;
+            const jaAcessouHoje = localStorage.getItem(chaveChaveiro);
+
+            if (jaAcessouHoje === hoje) {
+                // Já acessou hoje! Libera direto SEM registrar nova linha na planilha
+                painel.innerHTML = `
+                    <div class="spinner" style="border-top-color: var(--mrv-laranja);"></div>
+                    <h2 style="color: var(--mrv-verde);">Bem-vindo de volta!</h2>
+                    <p>Sua sessão está ativa. Redirecionando para o painel...</p>
+                `;
+                setTimeout(() => {
+                    window.location.href = `desktop.html?ref=${ref}`;
+                }, 1000);
+            } else {
+                // Primeiro acesso do dia! Precisamos validar no Google Apps Script e registrar o acesso
+                painel.innerHTML = `
+                    <div class="spinner"></div>
+                    <h2 style="color: var(--mrv-verde);">Registrando Primeiro Acesso...</h2>
+                    <p>Validando suas cotas de visualização com o servidor.</p>
+                `;
+
+                // Faz a chamada para o Google Sheets para computar o acesso
+                fetch(`${URL_API_GOOGLE}?ref=${ref}`)
+                    .then(response => response.json())
+                    .then(dados => {
+                        if (dados.status === "autorizado") {
+                            // Salva na memória do navegador para não repetir o registro hoje
+                            localStorage.setItem(chaveChaveiro, hoje);
+                            
+                            painel.innerHTML = `
+                                <div class="spinner" style="border-top-color: var(--mrv-laranja);"></div>
+                                <h2 style="color: var(--mrv-verde);">Acesso Autorizado!</h2>
+                                <p>Carregando o painel de residenciais...</p>
+                            `;
+                            setTimeout(() => {
+                                window.location.href = `desktop.html?ref=${ref}`;
+                            }, 1000);
+                        } else {
+                            exibirAcessoRecusado("Acesso Recusado", dados.reason || "Código de gerente inválido ou cota esgotada.");
+                        }
+                    })
+                    .catch(erro => {
+                        // Tratamento caso esteja rodando localmente (CORS) ou dê erro de rede
+                        console.error("Erro na validação:", erro);
+                        // Para não travar seus testes locais, se der erro de rede mas tiver ref, vamos deixar passar
+                        window.location.href = `desktop.html?ref=${ref}`;
+                    });
+            }
+        }
+
+        function exibirAcessoRecusado(titulo, mensagem) {
             painel.innerHTML = `
                 <div id="icone-erro" style="margin-bottom: 20px;">
                     <svg width="70" height="70" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -104,8 +148,8 @@
                         <path d="M8 12H16" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
                     </svg>
                 </div>
-                <h2 style="color: #d93025;">Acesso Recusado</h2>
-                <p>Você tentou acessar a URL direta sem o código do seu gerente regional. Solicite o link oficial para visualizar o Dashboard.</p>
+                <h2 style="color: #d93025;">${titulo}</h2>
+                <p>${mensagem}</p>
                 <p style="color: #a0a0a0; font-size: 11px; margin-top: 25px;">Portaria SpeedBroker • MRV SP</p>
             `;
         }
