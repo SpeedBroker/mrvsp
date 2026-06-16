@@ -15,7 +15,7 @@
   const containerResultado = document.getElementById('resultado-validacao');
   const iconeStatus = document.getElementById('icone-status');
 
-  // 1. BARRA IMEDIATAMENTE SE NÃO HOUVER O CÓDIGO REF
+  // 1. ANÁLISE DA PRESENÇA DA CHAVE REF DE ACESSO
   if (!codigoRef) {
     if (iconeStatus) {
       iconeStatus.innerHTML = `
@@ -34,7 +34,7 @@
     throw new Error("Acesso interrompido: Sem chave de referência válida.");
   }
 
-  // 2. VERIFICA SE O CORRETOR JÁ SE IDENTIFICOU ANTES NESTE NAVEGADOR
+  // 2. VERIFICAÇÃO DO USUÁRIO NO ARMAZENAMENTO LOCAL (LOCALSTORAGE)
   let nomeCorretor = localStorage.getItem('speedbroker_username');
 
   if (!nomeCorretor) {
@@ -80,8 +80,9 @@
     validarAcessoServidor(codigoRef, nomeCorretor);
   }
 
-  // 3. FUNÇÃO QUE ENVIA E TRATA O RETORNO DO SERVIDOR COM SEGURANÇA CORS
+  // 3. ENVIO E GERENCIAMENTO DA CONEXÃO CONTRAPARTIDA API GOOGLE
   function validarAcessoServidor(ref, usuario) {
+    // Uso do parâmetro timestamp (_cb) para forçar o navegador a buscar dados limpos na API
     const urlFinal = `${URL_API_GOOGLE}?ref=${ref}&userID=${encodeURIComponent(usuario)}&_cb=${new Date().getTime()}`;
 
     fetch(urlFinal, { method: 'GET', mode: 'cors' })
