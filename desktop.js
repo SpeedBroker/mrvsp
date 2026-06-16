@@ -38,7 +38,6 @@
   let nomeCorretor = localStorage.getItem('speedbroker_username');
 
   if (!nomeCorretor) {
-    // Se não houver nome salvo, transforma a tela de validação em um formulário de identificação simples
     if (iconeStatus) {
       iconeStatus.innerHTML = `
         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -58,14 +57,12 @@
         </div>
       `;
 
-      // Adiciona estilo de foco dinâmico no input
       const inputEl = document.getElementById('input-nome-corretor');
       if (inputEl) {
         inputEl.addEventListener('focus', () => inputEl.style.borderColor = '#004d24');
         inputEl.addEventListener('blur', () => inputEl.style.borderColor = '#ccc');
       }
 
-      // Aguarda o clique no botão para registrar e dar continuidade
       document.getElementById('btn-salvar-corretor').addEventListener('click', function() {
         const nomeDigitado = document.getElementById('input-nome-corretor').value.trim();
         
@@ -74,22 +71,20 @@
           return;
         }
 
-        // Salva o nome tratado e recarrega a validação
         localStorage.setItem('speedbroker_username', nomeDigitado);
         containerResultado.innerHTML = `<h2 style="margin-top: 0; color: #444;">Processando...</h2><p>Validando credenciais de ${nomeDigitado}...</p>`;
         validarAcessoServidor(codigoRef, nomeDigitado);
       });
     }
   } else {
-    // Se o corretor já for conhecido deste navegador, executa direto a validação
     validarAcessoServidor(codigoRef, nomeCorretor);
   }
 
-  // 3. FUNÇÃO QUE ENVIA O CÓDIGO E O NOME DO CORRETOR PARA A SUA PLANILHA
+  // 3. FUNÇÃO QUE ENVIA E TRATA O RETORNO DO SERVIDOR COM SEGURANÇA CORS
   function validarAcessoServidor(ref, usuario) {
     const urlFinal = `${URL_API_GOOGLE}?ref=${ref}&userID=${encodeURIComponent(usuario)}&_cb=${new Date().getTime()}`;
 
-    fetch(urlFinal)
+    fetch(urlFinal, { method: 'GET', mode: 'cors' })
       .then(response => {
         if (!response.ok) throw new Error('Erro HTTP ' + response.status);
         return response.json();
@@ -117,15 +112,16 @@
           if (containerResultado) {
             containerResultado.innerHTML = `
               <h2 style="color: #e65100; margin-bottom: 5px;">Chave Expirada ou Inválida</h2>
-              <p style="color: #666; font-size: 14px;">O código de acesso informado não está cadastrado ou já foi renovado pelo gerente.</p>
-              <p style="color: #999; font-size: 11px; margin-top: 15px;">Motivo: ${dados.reason}</p>
+              <p style="color: #666; font-size: 14px;">O código de acesso informado não está cadastrado.</p>
+              <p style="color: #999; font-size: 11px; margin-top: 15px;">Motivo: ${dados.reason || 'Restrição de segurança'}</p>
             `;
           }
-          document.getElementById('lista-imoveis').innerHTML = '';
-          document.getElementById('caixa-a').innerHTML = '';
+          if (document.getElementById('lista-imoveis')) document.getElementById('lista-imoveis').innerHTML = '';
+          if (document.getElementById('caixa-a')) document.getElementById('caixa-a').innerHTML = '';
         }
       })
       .catch(erro => {
+        console.error("Erro na validação:", erro);
         if (iconeStatus) {
           iconeStatus.innerHTML = `
             <svg width="70" height="70" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -137,13 +133,14 @@
         if (containerResultado) {
           containerResultado.innerHTML = `
             <h2 style="color: #5e503f; margin-bottom: 5px;">Erro de Rede</h2>
-            <p style="color: #666; font-size: 14px;">Não foi possível validar suas credenciais com o servidor. Verifique sua conexão.</p>
+            <p style="color: #666; font-size: 14px;">Não foi possível validar suas credenciais com o servidor. Verifique se a implantação do Google Apps Script foi atualizada.</p>
           `;
         }
       });
   }
 })();
 
+// O SEU BLOCO1 DEVE COMEÇAR EXATAMENTE ABAIXO DESTA LINHA
 // O SEU BLOCO1 DEVE COMEÇAR EXATAMENTE ABAIXO DESTA LINHA
 
 
