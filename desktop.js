@@ -1,7 +1,8 @@
 // =========================================================================
-// CAMADA INTERNA DE CONTROLE DE ACESSO - SPEEDBROKER (MÓDULO DE SEGURANÇA)
+// CAMADA DE CONTROLE DE ACESSO - SPEEDBROKER (VERSÃO CONTINGÊNCIA AMANHÃ)
 // =========================================================================
 (function() {
+  // CRÍTICO: Verifique se este ID abaixo bate exatamente com a sua implantação ativa atual
   const URL_API_GOOGLE = "https://script.google.com/macros/s/AKfycbwXlu0K9kGfFa0yxhhsUoX5MKz3clEOUPUSpuh_2zcS5eqtWzMLIrQezwumD2sd9m4/exec"; 
 
   function obterParametroUrl(nome) {
@@ -15,7 +16,19 @@
   const containerResultado = document.getElementById('resultado-validacao');
   const iconeStatus = document.getElementById('icone-status');
 
-  // 1. ANÁLISE DA PRESENÇA DA CHAVE REF DE ACESSO
+  // FUNÇÃO QUE CONTROLA A LIBERAÇÃO VISUAL DA TELA
+  function liberarAcessoImediato() {
+    console.log("Acesso liberado via modo de segurança/contingência.");
+    if (telaBloqueio) {
+      telaBloqueio.style.transition = "opacity 0.3s ease";
+      telaBloqueio.style.opacity = "0";
+      setTimeout(() => {
+        telaBloqueio.style.display = "none";
+      }, 300);
+    }
+  }
+
+  // 1. SE NÃO HOUVER CÓDIGO NA URL, BARRA POR SEGURANÇA BÁSICA
   if (!codigoRef) {
     if (iconeStatus) {
       iconeStatus.innerHTML = `
@@ -28,13 +41,13 @@
     if (containerResultado) {
       containerResultado.innerHTML = `
         <h2 style="color: #d93025; margin-bottom: 5px;">Acesso Recusado</h2>
-        <p style="color: #666; font-size: 14px;">Chave inválida ou ausente. Você precisa do link de acesso oficial fornecido pelo seu gerente regional.</p>
+        <p style="color: #666; font-size: 14px;">Chave de acesso ausente na URL.</p>
       `;
     }
-    throw new Error("Acesso interrompido: Sem chave de referência válida.");
+    throw new Error("Acesso interrompido: Link sem parâmetro 'ref'.");
   }
 
-  // 2. VERIFICAÇÃO DO USUÁRIO NO ARMAZENAMENTO LOCAL (LOCALSTORAGE)
+  // 2. CAPTURA OU SOLICITA O NOME DO CORRETOR/GERENTE
   let nomeCorretor = localStorage.getItem('speedbroker_username');
 
   if (!nomeCorretor) {
@@ -49,99 +62,56 @@
     }
     if (containerResultado) {
       containerResultado.innerHTML = `
-        <h2 style="color: #004d24; margin-bottom: 10px; font-size: 1.3rem;">Primeiro Acesso</h2>
-        <p style="color: #555; font-size: 13px; margin-bottom: 15px;">Por favor, digite seu nome único da MRV para ativar o seu painel.</p>
-        <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;">
-          <input type="text" id="input-nome-corretor" placeholder="Ex: Carlos, Antônio..." style="width: 80%; padding: 10px; border: 2px solid #ccc; border-radius: 4px; font-size: 14px; text-align: center; outline: none; transition: border-color 0.2s;">
-          <button id="btn-salvar-corretor" style="background-color: #febd11; color: #004d24; font-weight: bold; border: none; padding: 10px 25px; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-size: 12px; width: 80%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">Acessar Dashboard</button>
+        <h2 style="color: #004d24; margin-bottom: 10px; font-size: 1.2rem;">Bem-vindo ao Dashboard</h2>
+        <p style="color: #555; font-size: 13px; margin-bottom: 15px;">Por favor, identifique-se para configurar seu painel:</p>
+        <div style="display: flex; flex-direction: column; gap: 10px; align-items: center; width: 100%;">
+          <input type="text" id="input-nome-corretor" placeholder="Digite seu nome..." style="width: 80%; padding: 10px; border: 2px solid #ccc; border-radius: 4px; font-size: 14px; text-align: center; outline: none;">
+          <button id="btn-salvar-corretor" style="background-color: #febd11; color: #004d24; font-weight: bold; border: none; padding: 10px 25px; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-size: 12px; width: 80%;">Entrar no Painel</button>
         </div>
       `;
 
-      const inputEl = document.getElementById('input-nome-corretor');
-      if (inputEl) {
-        inputEl.addEventListener('focus', () => inputEl.style.borderColor = '#004d24');
-        inputEl.addEventListener('blur', () => inputEl.style.borderColor = '#ccc');
-      }
-
       document.getElementById('btn-salvar-corretor').addEventListener('click', function() {
         const nomeDigitado = document.getElementById('input-nome-corretor').value.trim();
-        
         if (!nomeDigitado || nomeDigitado.length < 2) {
-          alert("Por favor, digite um nome válido para continuar.");
+          alert("Por favor, digite seu nome para continuar.");
           return;
         }
-
         localStorage.setItem('speedbroker_username', nomeDigitado);
-        containerResultado.innerHTML = `<h2 style="margin-top: 0; color: #444;">Processando...</h2><p>Validando credenciais de ${nomeDigitado}...</p>`;
-        validarAcessoServidor(codigoRef, nomeDigitado);
+        
+        // Tenta registrar em segundo plano, mas já libera o acesso imediatamente
+        registrarAcessoServidor(codigoRef, nomeDigitado);
+        liberarAcessoImediato();
       });
     }
   } else {
-    validarAcessoServidor(codigoRef, nomeCorretor);
+    // Se o usuário já se identificou antes, tenta registrar em segundo plano e abre o painel direto
+    registrarAcessoServidor(codigoRef, nomeCorretor);
+    liberarAcessoImediato();
   }
 
-  // 3. ENVIO E GERENCIAMENTO DA CONEXÃO CONTRAPARTIDA API GOOGLE
-  function validarAcessoServidor(ref, usuario) {
-    // Uso do parâmetro timestamp (_cb) para forçar o navegador a buscar dados limpos na API
+  // 3. ENVIAR REGISTRO PARA O GOOGLE (EM SEGUNDO PLANO SEM TRAVAR O USUÁRIO)
+  function registrarAcessoServidor(ref, usuario) {
     const urlFinal = `${URL_API_GOOGLE}?ref=${ref}&userID=${encodeURIComponent(usuario)}&_cb=${new Date().getTime()}`;
-
+    
+    console.log("Tentando registrar acesso na planilha...");
+    
+    // O segredo da contingência: se der erro de CORS ou Rede, o .catch captura e o sistema continua funcionando
     fetch(urlFinal, { method: 'GET', mode: 'cors' })
       .then(response => {
-        if (!response.ok) throw new Error('Erro HTTP ' + response.status);
+        if (!response.ok) throw new Error('Status HTTP ' + response.status);
         return response.json();
       })
       .then(dados => {
-        if (dados.status === "autorizado") {
-          console.log(`Acesso permitido para equipe: ${dados.gerente} | Corretor: ${usuario}`);
-          
-          if (telaBloqueio) {
-            telaBloqueio.style.transition = "opacity 0.4s ease";
-            telaBloqueio.style.opacity = "0";
-            setTimeout(() => {
-              telaBloqueio.style.display = "none";
-            }, 400);
-          }
-        } else {
-          if (iconeStatus) {
-            iconeStatus.innerHTML = `
-              <svg width="70" height="70" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="#e65100"/>
-                  <path d="M12 8V13M12 16H12.01" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-              </svg>
-            `;
-          }
-          if (containerResultado) {
-            containerResultado.innerHTML = `
-              <h2 style="color: #e65100; margin-bottom: 5px;">Chave Expirada ou Inválida</h2>
-              <p style="color: #666; font-size: 14px;">O código de acesso informado não está cadastrado.</p>
-              <p style="color: #999; font-size: 11px; margin-top: 15px;">Motivo: ${dados.reason || 'Restrição de segurança'}</p>
-            `;
-          }
-          if (document.getElementById('lista-imoveis')) document.getElementById('lista-imoveis').innerHTML = '';
-          if (document.getElementById('caixa-a')) document.getElementById('caixa-a').innerHTML = '';
-        }
+        console.log("Resposta do servidor registrada:", dados);
       })
       .catch(erro => {
-        console.error("Erro na validação:", erro);
-        if (iconeStatus) {
-          iconeStatus.innerHTML = `
-            <svg width="70" height="70" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="10" fill="#5e503f"/>
-                <path d="M10 10L14 14M14 10L10 14" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-            </svg>
-          `;
-        }
-        if (containerResultado) {
-          containerResultado.innerHTML = `
-            <h2 style="color: #5e503f; margin-bottom: 5px;">Erro de Rede</h2>
-            <p style="color: #666; font-size: 14px;">Não foi possível validar suas credenciais com o servidor. Verifique se a implantação do Google Apps Script foi atualizada.</p>
-          `;
-        }
+        // Se houver Erro de Rede / CORS, ele morre aqui no console de forma silenciosa e não afeta o gerente
+        console.warn("Aviso: Falha ao salvar na planilha (CORS/Rede), mas o acesso do usuário foi garantido.", erro);
       });
   }
 })();
 
-// O SEU BLOCO1 DEVE COMEÇAR EXATAMENTE ABAIXO DESTA LINHA
+// O SEU BLOCO1 (MÓDULO DE IMÓVEIS, SELEÇÃO, ETC) COMEÇA EXATAMENTE ABAIXO DESTA LINHA
 
 
 /* ==========================================================================
