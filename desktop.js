@@ -1,8 +1,7 @@
 // =========================================================================
-// CAMADA DE CONTROLE DE ACESSO - SPEEDBROKER (VERSÃO CONTINGÊNCIA AMANHÃ)
+// CAMADA INTERNA DE CONTROLE DE ACESSO - SPEEDBROKER (MÓDULO DE SEGURANÇA)
 // =========================================================================
 (function() {
-  // CRÍTICO: Verifique se este ID abaixo bate exatamente com a sua implantação ativa atual
   const URL_API_GOOGLE = "https://script.google.com/macros/s/AKfycbwXlu0K9kGfFa0yxhhsUoX5MKz3clEOUPUSpuh_2zcS5eqtWzMLIrQezwumD2sd9m4/exec"; 
 
   function obterParametroUrl(nome) {
@@ -16,41 +15,22 @@
   const containerResultado = document.getElementById('resultado-validacao');
   const iconeStatus = document.getElementById('icone-status');
 
-  // FUNÇÃO QUE CONTROLA A LIBERAÇÃO VISUAL DA TELA
-  function liberarAcessoImediato() {
-    console.log("Acesso liberado via modo de segurança/contingência.");
-    if (telaBloqueio) {
-      telaBloqueio.style.transition = "opacity 0.3s ease";
-      telaBloqueio.style.opacity = "0";
-      setTimeout(() => {
-        telaBloqueio.style.display = "none";
-      }, 300);
-    }
-  }
-
-  // 1. SE NÃO HOUVER CÓDIGO NA URL, BARRA POR SEGURANÇA BÁSICA
+  // 1. SE NÃO HOUVER CÓDIGO REF, BLOQUEIA IMEDIATAMENTE
   if (!codigoRef) {
-    if (iconeStatus) {
-      iconeStatus.innerHTML = `
-        <svg width="70" height="70" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="#ff4d4d"/>
-            <path d="M8 12H16" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-        </svg>
-      `;
-    }
-    if (containerResultado) {
-      containerResultado.innerHTML = `
-        <h2 style="color: #d93025; margin-bottom: 5px;">Acesso Recusado</h2>
-        <p style="color: #666; font-size: 14px;">Chave de acesso ausente na URL.</p>
-      `;
-    }
-    throw new Error("Acesso interrompido: Link sem parâmetro 'ref'.");
+    exibirPainelErro("Acesso Recusado", "Chave de acesso ausente ou mal formatada na URL.");
+    throw new Error("Acesso interrompido: Sem chave de referência.");
   }
 
-  // 2. CAPTURA OU SOLICITA O NOME DO CORRETOR/GERENTE
+  // 2. CONTROLE DE IDENTIFICAÇÃO DO CORRETOR
   let nomeCorretor = localStorage.getItem('speedbroker_username');
 
   if (!nomeCorretor) {
+    solicitarNomeUsuario();
+  } else {
+    validarAcessoServidor(codigoRef, nomeCorretor);
+  }
+
+  function solicitarNomeUsuario() {
     if (iconeStatus) {
       iconeStatus.innerHTML = `
         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -62,56 +42,79 @@
     }
     if (containerResultado) {
       containerResultado.innerHTML = `
-        <h2 style="color: #004d24; margin-bottom: 10px; font-size: 1.2rem;">Bem-vindo ao Dashboard</h2>
-        <p style="color: #555; font-size: 13px; margin-bottom: 15px;">Por favor, identifique-se para configurar seu painel:</p>
+        <h2 style="color: #004d24; margin-bottom: 10px; font-size: 1.2rem;">Controle de Acesso</h2>
+        <p style="color: #555; font-size: 13px; margin-bottom: 15px;">Por favor, digite seu nome ou ID para registrar sua entrada no painel.</p>
         <div style="display: flex; flex-direction: column; gap: 10px; align-items: center; width: 100%;">
-          <input type="text" id="input-nome-corretor" placeholder="Digite seu nome..." style="width: 80%; padding: 10px; border: 2px solid #ccc; border-radius: 4px; font-size: 14px; text-align: center; outline: none;">
-          <button id="btn-salvar-corretor" style="background-color: #febd11; color: #004d24; font-weight: bold; border: none; padding: 10px 25px; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-size: 12px; width: 80%;">Entrar no Painel</button>
+          <input type="text" id="input-nome-corretor" placeholder="Seu nome aqui..." style="width: 80%; padding: 10px; border: 2px solid #ccc; border-radius: 4px; font-size: 14px; text-align: center; outline: none;">
+          <button id="btn-salvar-corretor" style="background-color: #febd11; color: #004d24; font-weight: bold; border: none; padding: 10px 25px; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-size: 12px; width: 80%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">Validar Chave</button>
         </div>
       `;
 
       document.getElementById('btn-salvar-corretor').addEventListener('click', function() {
         const nomeDigitado = document.getElementById('input-nome-corretor').value.trim();
         if (!nomeDigitado || nomeDigitado.length < 2) {
-          alert("Por favor, digite seu nome para continuar.");
+          alert("Por favor, informe seu nome completo.");
           return;
         }
         localStorage.setItem('speedbroker_username', nomeDigitado);
-        
-        // Tenta registrar em segundo plano, mas já libera o acesso imediatamente
-        registrarAcessoServidor(codigoRef, nomeDigitado);
-        liberarAcessoImediato();
+        containerResultado.innerHTML = `<h2>Processando...</h2><p>Verificando autorização no servidor...</p>`;
+        validarAcessoServidor(codigoRef, nomeDigitado);
       });
     }
-  } else {
-    // Se o usuário já se identificou antes, tenta registrar em segundo plano e abre o painel direto
-    registrarAcessoServidor(codigoRef, nomeCorretor);
-    liberarAcessoImediato();
   }
 
-  // 3. ENVIAR REGISTRO PARA O GOOGLE (EM SEGUNDO PLANO SEM TRAVAR O USUÁRIO)
-  function registrarAcessoServidor(ref, usuario) {
+  // 3. FAZ A VALIDAÇÃO DIRETA COM O GOOGLE SCRIPT
+  function validarAcessoServidor(ref, usuario) {
     const urlFinal = `${URL_API_GOOGLE}?ref=${ref}&userID=${encodeURIComponent(usuario)}&_cb=${new Date().getTime()}`;
-    
-    console.log("Tentando registrar acesso na planilha...");
-    
-    // O segredo da contingência: se der erro de CORS ou Rede, o .catch captura e o sistema continua funcionando
+
     fetch(urlFinal, { method: 'GET', mode: 'cors' })
       .then(response => {
-        if (!response.ok) throw new Error('Status HTTP ' + response.status);
+        if (!response.ok) throw new Error('Erro na rede HTTP: ' + response.status);
         return response.json();
       })
       .then(dados => {
-        console.log("Resposta do servidor registrada:", dados);
+        if (dados.status === "autorizado") {
+          console.log(`Acesso concedido: Equipe ${dados.gerente}`);
+          // Libera a tela de bloqueio com suavidade
+          if (telaBloqueio) {
+            telaBloqueio.style.transition = "opacity 0.4s ease";
+            telaBloqueio.style.opacity = "0";
+            setTimeout(() => { telaBloqueio.style.display = "none"; }, 400);
+          }
+        } else {
+          // Se o servidor retornar recusado (Gerente não cadastrado), apaga os dados locais e trava
+          localStorage.removeItem('speedbroker_username'); 
+          exibirPainelErro("Acesso Negado", "Este código de gerente não está autorizado no sistema.");
+        }
       })
       .catch(erro => {
-        // Se houver Erro de Rede / CORS, ele morre aqui no console de forma silenciosa e não afeta o gerente
-        console.warn("Aviso: Falha ao salvar na planilha (CORS/Rede), mas o acesso do usuário foi garantido.", erro);
+        console.error("Falha crítica:", erro);
+        exibirPainelErro("Erro de Sincronização", "Não foi possível validar suas credenciais. Contate o administrador.");
       });
+  }
+
+  function exibirPainelErro(titulo, mensagem) {
+    if (iconeStatus) {
+      iconeStatus.innerHTML = `
+        <svg width="70" height="70" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="#d93025"/>
+            <path d="M12 8V13M12 16H12.01" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      `;
+    }
+    if (containerResultado) {
+      containerResultado.innerHTML = `
+        <h2 style="color: #d93025; margin-bottom: 5px;">${titulo}</h2>
+        <p style="color: #666; font-size: 14px; max-width: 280px; margin: 0 auto;">${mensagem}</p>
+      `;
+    }
+    // Remove os elementos visuais do painel de fundo para que o usuário não cadastrado não veja nada
+    if (document.getElementById('lista-imoveis')) document.getElementById('lista-imoveis').innerHTML = '';
+    if (document.getElementById('caixa-a')) document.getElementById('caixa-a').innerHTML = '';
   }
 })();
 
-// O SEU BLOCO1 (MÓDULO DE IMÓVEIS, SELEÇÃO, ETC) COMEÇA EXATAMENTE ABAIXO DESTA LINHA
+// O SEU BLOCO1 COMEÇA EXATAMENTE ABAIXO DESTA LINHA
 
 
 /* ==========================================================================
