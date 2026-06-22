@@ -6,6 +6,7 @@ const URL_API_GOOGLE = "https://script.google.com/macros/s/AKfycbwXlu0K9kGfFa0yx
 
 // LISTA DE GERENTES ATUALIZADA RIGOROSAMENTE - VERSÃO EMERGENCIAL
 const GERENTES_AUTORIZADOS = {
+  "development": "development",
   "isnaldo2z3v": "Isnaldo",
   "vitor2f5d": "Vitor",
   "suzi32nn": "Suzi",
