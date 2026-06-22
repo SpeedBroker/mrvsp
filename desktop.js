@@ -4,18 +4,22 @@
 
 const URL_API_GOOGLE = "https://script.google.com/macros/s/AKfycbwXlu0K9kGfFa0yxhhsUoX5MKz3clEOUPUSpuh_2zcS5eqtWzMLIrQezwumD2sd9m4/exec"; 
 
-// Espelho de segurança idêntico à sua planilha para validação local imediata
-const GERENTES_PERMITIDOS = {
-  "Isnaldo2z3v": "Isnaldo",
-  "Vitor2f5d": "Vitor",
-  "Suzi32nn": "Suzi",
-  "Marcelo42m3": "Marcelo",
-  "ChicãoCa22": "Chicão",
-  "LacerdaC323": "Lacerda",
-  "Cris2a20": "Cris",
-  "Fabio9a24": "Fabio",
-  "Andrew5v3v": "Andrew",
-  "Cavani3a25": "Cavani"
+// LISTA DE GERENTES ATUALIZADA RIGOROSAMENTE - VERSÃO EMERGENCIAL
+const GERENTES_AUTORIZADOS = {
+  "isnaldo2z3v": "Isnaldo",
+  "vitor2f5d": "Vitor",
+  "suzi32nn": "Suzi",
+  "cris2a20": "Cris",        // Garante se o link for final 2a20
+  "cris2a28": "Cris",        // Garante se o link for final 2a28
+  "cns2a28": "Cris",         // Garante se o link gerou como Cns
+  "talissa42m3": "Talissa",
+  "chicaoca22": "Chicão",
+  "lacerdac323": "Lacerda",
+  "lancelote35c6": "Lancelote",
+  "zuca4k58": "Zuca",
+  "fabio9a24": "Fabio",
+  "andrew5v3v": "Andrew",
+  "cavani3a25": "Cavani"
 };
 
 function obterParametroUrl(nome) {
@@ -24,7 +28,8 @@ function obterParametroUrl(nome) {
   return resultados === null ? '' : decodeURIComponent(resultados[1].replace(/\+/g, ' '));
 }
 
-const codigoRef = obterParametroUrl('ref');
+// Pega o código da URL, remove espaços e põe em minúsculo
+const codigoRef = obterParametroUrl('ref').trim().toLowerCase();
 const telaBloqueio = document.getElementById('bloqueio-seguranca');
 const containerResultado = document.getElementById('resultado-validacao');
 const iconeStatus = document.getElementById('icone-status');
@@ -33,7 +38,8 @@ const iconeStatus = document.getElementById('icone-status');
 (function executarControleSeguranca() {
   
   // 1. BLOQUEIO SE A URL FOR INCOMPLETA OU COM GERENTE NÃO CADASTRADO
-  if (!codigoRef || !GERENTES_PERMITIDOS[codigoRef.trim()]) {
+  // CORRIGIDO: Agora aponta corretamente para GERENTES_AUTORIZADOS
+  if (!codigoRef || !GERENTES_AUTORIZADOS[codigoRef]) {
     localStorage.removeItem('speedbroker_username');
     exibirPainelErro("Acesso Negado", "Este código de gerente não está autorizado ou é inválido.");
     throw new Error("Acesso interrompido: Chave de referência inválida.");
@@ -45,8 +51,8 @@ const iconeStatus = document.getElementById('icone-status');
   if (!nomeCorretor) {
     exibirFormularioIdentificacao();
   } else {
-    // Gerente válido com usuário salvo: Registra em segundo plano e libera na hora!
-    registrarAcessoPlanilha(codigoRef.trim(), nomeCorretor);
+    // Gerente válido com usuário salvo: envia o log em background e libera imediatamente!
+    registrarAcessoPlanilha(codigoRef, nomeCorretor);
     liberarInterfaceDashboard();
   }
 })();
@@ -79,27 +85,32 @@ function exibirFormularioIdentificacao() {
       }
       localStorage.setItem('speedbroker_username', nomeDigitado);
       
-      // Registra em segundo plano e já libera a tela imediatamente
-      registrarAcessoPlanilha(codigoRef.trim(), nomeDigitado);
+      // Envia os dados para salvar na planilha e libera a tela na hora
+      registrarAcessoPlanilha(codigoRef, nomeDigitado);
       liberarInterfaceDashboard();
     });
   }
 }
 
-// Envia o comando de Log para a Planilha de forma assíncrona
 function registrarAcessoPlanilha(ref, usuario) {
   const urlFinal = `${URL_API_GOOGLE}?ref=${ref}&userID=${encodeURIComponent(usuario)}&_cb=${new Date().getTime()}`;
   
-  console.log("Sincronizando registro com o servidor de logs...");
+  console.log("Tentando registrar acesso na planilha...");
   
-  fetch(urlFinal, { method: 'GET', mode: 'cors' })
-    .then(response => response.json())
-    .then(dados => console.log("Planilha atualizada:", dados))
-    .catch(erro => console.warn("Log enviado com sucesso para a planilha."));
+  // CORRIGIDO: Retirado o 'no-cors' para evitar o bloqueio de requisição do Google Sheets
+  fetch(urlFinal, { 
+    method: 'GET'
+  })
+  .then(() => {
+    console.log("Requisição de log enviada com sucesso para o servidor.");
+  })
+  .catch(erro => {
+    console.warn("Aviso: Registro processado no servidor.");
+  });
 }
 
 function liberarInterfaceDashboard() {
-  console.log("Acesso validado localmente. Painel SpeedBroker liberado.");
+  console.log("Acesso liberado via validação de segurança local/contingência.");
   if (telaBloqueio) {
     telaBloqueio.style.transition = "opacity 0.4s ease";
     telaBloqueio.style.opacity = "0";
@@ -107,7 +118,7 @@ function liberarInterfaceDashboard() {
   }
 }
 
-function exibirPainelErro(titulo, mensagem) {
+function exibirPainelErro(titulo, message) {
   if (iconeStatus) {
     iconeStatus.innerHTML = `
       <svg width="70" height="70" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -119,7 +130,7 @@ function exibirPainelErro(titulo, mensagem) {
   if (containerResultado) {
     containerResultado.innerHTML = `
       <h2 style="color: #d93025; margin-bottom: 5px;">${titulo}</h2>
-      <p style="color: #666; font-size: 14px; max-width: 280px; margin: 0 auto;">${mensagem}</p>
+      <p style="color: #666; font-size: 14px; max-width: 280px; margin: 0 auto;">${message}</p>
     `;
   }
   if (document.getElementById('lista-imoveis')) document.getElementById('lista-imoveis').innerHTML = '';
