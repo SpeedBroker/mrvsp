@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpeedBroker - Painel de Monitoramento</title>
+    <style>
+        :root {
+            --verde-principal: #004d24;
+            --verde-escuro: #003318;
+            --amarelo: #febd11;
+            --cinza-fundo: #f4f7f5;
+            --branco: #ffffff;
+            --texto-escuro: #2c3e50;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--cinza-fundo);
+            color: var(--texto-escuro);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--verde-principal);
+            color: var(--branco);
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 5px solid var(--amarelo);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 0.95rem;
+            color: #a3cfa2;
+            margin-top: 6px;
+        }
+
+        main {
+            flex: 1;
+            max-width: 900px;
+            width: 100%;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .card-resumo {
+            background-color: var(--branco);
+            border-radius: 10px;
+            padding: 15px 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            border-left: 6px solid var(--verde-principal);
+        }
+
+        .card-info h2 {
+            font-size: 1.4rem;
+            color: var(--verde-principal);
+            font-weight: 600;
+        }
+
+        .card-info span {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .badge-total {
+            background-color: var(--amarelo);
+            color: var(--verde-escuro);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1rem;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tabela-container {
+            background-color: var(--branco);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        thead {
+            background-color: var(--verde-principal);
+            color: var(--branco);
+        }
+
+        th {
+            padding: 12px 20px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 8px 20px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #ebf0ec;
+            color: #34495e;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background-color: #f7faf8;
+        }
+
+        .sem-dados {
+            text-align: center;
+            padding: 30px;
+            color: #888;
+            font-style: italic;
+        }
+
+        .status-carregando {
+            text-align: center;
+            padding: 30px;
+            color: var(--verde-principal);
+            font-weight: bold;
+            animation: piscar 1.5s ease-in-out infinite;
+        }
+
+        @keyframes piscar {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>SpeedBroker</h1>
+        <p>Painel de Monitoramento de Acessos da Equipe</p>
+    </header>
+
+    <main>
+        <div class="card-resumo">
+            <div class="card-info">
+                <h2 id="nome-gerente">Gerente: Sincronizando...</h2>
+                <span id="codigo-reg">Código Ref: Verificando...</span>
+            </div>
+            <div class="badge-total" id="contador-corretores">0 CORRETORES UTILIZANDO</div>
+        </div>
+
+        <div class="tabela-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome do Corretor</th>
+                        <th>Horário do Último Clique</th>
+                        <th style="text-align: center;">Total de Acessos</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-corpo">
+                    <tr>
+                        <td colspan="3" id="msg-conectar" class="status-carregando">Conectando ao canal seguro SpeedBroker...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        const URL_API_GOOGLE = "https://script.google.com/macros/s/AKfycbwXlu0K9kGfFa0yxhhsUoX5MKz3clEOUPUSpuh_2zcS5eqtWzMLIrQezwumD2sd9m4/exec";
+
+        function obterParametroUrl(nome) {
+            var regex = new RegExp('[\\?&]' + nome + '=([^&#]*)');
+            var resultados = regex.exec(location.search);
+            return resultados === null ? '' : decodeURIComponent(resultados[1].replace(/\+/g, ' '));
+        }
+
+        const codigoRef = obterParametroUrl('ref').trim().toLowerCase();
+
+        // Callback receptor do JSONP legítimo
+        window.processarRespostaGerente = function(dados) {
+            console.log("Sucesso absoluto! Dados brutos recebidos da API:", dados);
+            const corpo = document.getElementById('tabela-corpo');
+            
+            let dadosTratados = dados;
+            if (typeof dados === 'string') {
+                try { dadosTratados = JSON.parse(dados); } catch(e) {}
+            }
+            
+            if (!dadosTratados || dadosTratados.status === "recusado" || dadosTratados.status === "erro") {
+                corpo.innerHTML = `<tr><td colspan="3" style="color: #d93025; text-align: center; font-weight: bold; padding: 20px;">Acesso Negado: Código "${codigoRef.toUpperCase()}" não localizado na base.</td></tr>`;
+                document.getElementById('nome-gerente').innerText = "Erro de Autenticação";
+                return;
+            }
+
+            document.getElementById('nome-gerente').innerText = `Gerente: ${dadosTratados.gerente || 'Painel de Controle'}`;
+            document.getElementById('codigo-reg').innerText = `Código Ref Cadastrado: ${codigoRef.toUpperCase()}`;
+
+            const equipe = dadosTratados.equipe || [];
+
+            if (equipe.length === 0) {
+                corpo.innerHTML = `<tr><td colspan="3" class="sem-dados">Nenhum corretor utilizou seu link até o momento.</td></tr>`;
+                document.getElementById('contador-corretores').innerText = `0 CORRETORES UTILIZANDO`;
+            } else {
+                corpo.innerHTML = "";
+                document.getElementById('contador-corretores').innerText = `${equipe.length} CORRETORES UTILIZANDO`;
+
+                equipe.forEach(corretor => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="font-weight: 600; color: var(--verde-escuro);">${corretor.nome}</td>
+                        <td style="color: #7f8c8d;">${corretor.ultimoAcesso}</td>
+                        <td style="text-align: center; font-weight: bold; color: var(--verde-principal); font-size: 1.05rem;">${corretor.cliques}</td>
+                    `;
+                    corpo.appendChild(tr);
+                });
+            }
+        };
+
+        function iniciarSincronizacao() {
+            if (!codigoRef) {
+                document.getElementById('tabela-corpo').innerHTML = `<tr><td colspan="3" style="color: #d93025; text-align: center; font-weight: bold; padding: 20px;">Erro de Link: Código de referência (?ref=) ausente na URL.</td></tr>`;
+                document.getElementById('nome-gerente').innerText = "Link Incompleto";
+                return;
+            }
+
+            // Injeção limpa e direta do canal JSONP padrão
+            const script = document.createElement('script');
+            script.src = `${URL_API_GOOGLE}?ref=${codigoRef}&userID=requisicao_painel&callback=processarRespostaGerente&_ts=${new Date().getTime()}`;
+            
+            script.onerror = function() {
+                document.getElementById('tabela-corpo').innerHTML = `<tr><td colspan="3" style="color: #d93025; text-align: center; font-weight: bold; padding: 20px;">Aguardando resposta estável do servidor do Google...</td></tr>`;
+            };
+            
+            document.body.appendChild(script);
+        }
+
+        window.onload = iniciarSincronizacao;
+    </script>
+</body>
+</html>
