@@ -340,7 +340,7 @@ async function carregarAbaDocumentos() {
         const linhasPuras = texto.split(/\r?\n/);
 
         DOCUMENTOS_GERAIS = linhasPuras.slice(1).map(linha => {
-            const inlineLimpa = line = linha.replace(/^"|"$/g, '').trim();
+            const inlineLimpa = linha.replace(/^"|"$/g, '').trim();
             if (!inlineLimpa) return null;
 
             const ultimaVirgula = inlineLimpa.lastIndexOf(',');
@@ -385,6 +385,15 @@ async function carregarPlanilha() {
 
             const cat = (colunas[COL.CATEGORIA] || "").toUpperCase();
             
+            // Captura o valor bruto da coluna de Garagem
+            let valorBrutoGaragem = colunas[32];
+            
+            // Tratamento rigoroso: se for "0", vazio, undefined ou nulo, garante que exiba corretamente
+            let dadoGaragem = "---";
+            if (valorBrutoGaragem !== undefined && valorBrutoGaragem !== null && valorBrutoGaragem.toString().trim() !== "") {
+                dadoGaragem = valorBrutoGaragem.toString().trim();
+            }
+
             return {
                 id_path: idPath,
                 tipo: cat.includes('COMPLEXO') ? 'N' : 'R',
@@ -398,10 +407,9 @@ async function carregarPlanilha() {
                 obra: colunas[COL.OBRA] || "0",
                 tipologiasH: colunas[COL.TIPOLOGIAS] || "", 
                 regiao: colunas[COL.REGIAO] || "---",
-                p_de: colunas[COL.P_DE] || "---",
-                p_ate: colunas[COL.P_ATE] || "---",
                 limitador: colunas[COL.LIMITADOR] || "---",
                 casa_paulista: colunas[COL.CASA_PAULISTA] || "---",
+                garagem: dadoGaragem, 
                 campanha: colunas[COL.CAMPANHA] || "",
                 observacoes: colunas[COL.OBSERVACOES] || "", 
                 descLonga: colunas[COL.DESC_LONGA] || "",
@@ -650,29 +658,36 @@ function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
         }
         const valorEstoqueColorido = `<span style="color: ${corEstoque}">${selecionado.estoque || "---"} UN.</span>`;
 
+        // Linha inteira estável do Limitador
         html += `
         <div class="grid-cell full-width" style="display: flex; justify-content: center; align-items: center; padding: 6px 10px; background-color: #444444; color: #ffffff; border-bottom: 1px solid #555555; box-sizing: border-box; width: 100%; height: 32px;">
             <strong style="font-size: 0.75rem; text-align: center; word-break: break-word; font-weight: bold; letter-spacing: 0.3px;">${selecionado.limitador}</strong>
         </div>`;
 
+        // Linha inteira estável da Casa Paulista
         html += `
         <div class="grid-cell full-width" style="display: flex; justify-content: center; align-items: center; padding: 6px 10px; background-color: #444444; color: #ffffff; border-bottom: 1px solid #555555; box-sizing: border-box; width: 100%; height: 32px;">
             <strong style="font-size: 0.75rem; text-align: center; word-break: break-word; font-weight: bold; letter-spacing: 0.3px;">${selecionado.casa_paulista}</strong>
         </div>`;
 
+        // Linha inferior dividida perfeitamente em 4 colunas iguais
         html += `
         <div style="display: flex; width: 100%; background-color: #444444; color: #ffffff; border-bottom: 1px solid #555555; box-sizing: border-box; height: 32px;">
-            <div style="flex: 1; padding: 6px 8px; border-right: 1px solid #555555; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box;">
-                <label style="font-size: 0.65rem; font-weight: bold; color: #a5d6a7; text-transform: uppercase;">Entrega</label>
-                <strong style="font-size: 0.75rem; color: #ffffff;">${selecionado.entrega}</strong>
+            <div style="flex: 1; padding: 6px 4px; border-right: 1px solid #555555; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box;">
+                <label style="font-size: 0.58rem; font-weight: bold; color: #a5d6a7; text-transform: uppercase;">Entrega</label>
+                <strong style="font-size: 0.68rem; color: #ffffff; margin-left: 2px;">${selecionado.entrega}</strong>
             </div>
-            <div style="flex: 1; padding: 6px 8px; border-right: 1px solid #555555; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box;">
-                <label style="font-size: 0.65rem; font-weight: bold; color: #a5d6a7; text-transform: uppercase;">Obra</label>
-                <strong style="font-size: 0.75rem; color: #ffffff;">${selecionado.obra || 0}%</strong>
+            <div style="flex: 1; padding: 6px 4px; border-right: 1px solid #555555; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box;">
+                <label style="font-size: 0.58rem; font-weight: bold; color: #a5d6a7; text-transform: uppercase;">Obra</label>
+                <strong style="font-size: 0.68rem; color: #ffffff; margin-left: 2px;">${selecionado.obra || 0}%</strong>
             </div>
-            <div style="flex: 1; padding: 6px 8px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box;">
-                <label style="font-size: 0.65rem; font-weight: bold; color: #a5d6a7; text-transform: uppercase;">Estoque</label>
-                <strong style="font-size: 0.75rem;">${valorEstoqueColorido}</strong>
+            <div style="flex: 1; padding: 6px 4px; border-right: 1px solid #555555; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box;">
+                <label style="font-size: 0.58rem; font-weight: bold; color: #a5d6a7; text-transform: uppercase;">Estoque</label>
+                <strong style="font-size: 0.68rem; margin-left: 2px;">${valorEstoqueColorido}</strong>
+            </div>
+            <div style="flex: 1; padding: 6px 4px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box;">
+                <label style="font-size: 0.58rem; font-weight: bold; color: #a5d6a7; text-transform: uppercase;">Garagem</label>
+                <strong style="font-size: 0.68rem; color: #ffffff; margin-left: 2px;">${selecionado.garagem}</strong>
             </div>
         </div>`;
 
@@ -680,7 +695,7 @@ function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
         if (selecionado.tipologiasH) {
             const lines = selecionado.tipologiasH.split(';').map(l => l.trim()).filter(l => l !== "");
             lines.forEach(linhaStr => {
-                const colsArr = linhaStr.split(',').map(c => c.trim());
+                const colsArr = inlineLimpa = linhaStr.split(',').map(c => c.trim());
                 if (colsArr.length > 1 && colsArr[1] !== "" && colsArr[0].toLowerCase().includes("partir")) {
                     precoReal = colsArr[1];
                 }
@@ -741,7 +756,6 @@ function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
             </div>`;
         }
     } else {
-        // REVISADO: Adicionado mapeamento de cor para as faixas dos Complexos das novas regiões
         let corComplexo = "#333";
         const zUpper = selecionado.zona.toUpperCase().trim();
         
@@ -749,8 +763,8 @@ function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
         else if (zUpper === 'ZL') corComplexo = "#003399";
         else if (zUpper === 'ZN') corComplexo = "#ffd700";
         else if (zUpper === 'ZS') corComplexo = "#ff33aa";
-        else if (zUpper.includes("VALE")) corComplexo = "#8e44ad"; // Roxo elegante para RegVale
-        else if (zUpper.includes("CAMPINAS")) corComplexo = "#16a085"; // Verde-esmeralda para RegCampinas
+        else if (zUpper.includes("VALE")) corComplexo = "#8e44ad"; 
+        else if (zUpper.includes("CAMPINAS")) corComplexo = "#16a085"; 
 
         let corTexto = (zUpper === 'ZN') ? "#333" : "white";
 
