@@ -8,7 +8,7 @@ const URL_API_GOOGLE = "https://script.google.com/macros/s/AKfycbwXlu0K9kGfFa0yx
 const GERENTES_AUTORIZADOS = {
   
   "isnaldo2z3v": "Isnaldo",
-  "ge2f5d": "ge",
+  "antonio2f5d": "Antonio",
   "suzi32nn": "Suzi",
   "cris2a20": "Cris",        // Garante se o link for final 2a20
   "cris2a28": "Cris",        // Garante se o link for final 2a28
