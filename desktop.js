@@ -10,9 +10,8 @@ const GERENTES_AUTORIZADOS = {
   "isnaldo2z3v": "Isnaldo",
   "antonio2f5d": "Antonio",
   "suzi32nn": "Suzi",
-  "cris2a20": "Cris",        // Garante se o link for final 2a20
-  "cris2a28": "Cris",        // Garante se o link for final 2a28
-  "cns2a28": "Cris",         // Garante se o link gerou como Cns
+  "cris2a20": "Cris",
+  "alexsandrapenha32er": "Alexsandra Penha",
   "talissa42m3": "Talissa",
   "chicaoca22": "Chicão",
   "lacerdac323": "Lacerda",
