@@ -20,7 +20,8 @@ const GERENTES_AUTORIZADOS = {
   "zuca4k58": "Zuca",
   "fabio9a24": "Fabio",
   "andrew5v3v": "Andrew",
-  "cavani3a25": "Cavani"
+  "cavani3a25": "Cavani",
+  "antonio2sp2": "Antonio"
 };
 
 function obterParametroUrl(nome) {
