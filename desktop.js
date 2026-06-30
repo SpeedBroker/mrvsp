@@ -11,7 +11,7 @@ const GERENTES_AUTORIZADOS = {
   "antonio2f5d": "Antonio",
   "suzi32nn": "Suzi",
   "cris2a20": "Cris",
-  "alexsandrapenha32er": "Alexsandra Penha",
+  "alexsandrapenha32er-11992617026": "Alexsandra Penha",
   "talissa42m3": "Talissa",
   "chicaoca22": "Chicão",
   "lacerdac323": "Lacerda",
