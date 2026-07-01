@@ -6,7 +6,8 @@ const URL_API_GOOGLE = "https://script.google.com/macros/s/AKfycbwXlu0K9kGfFa0yx
 
 // LISTA DE GERENTES ATUALIZADA RIGOROSAMENTE - VERSÃO EMERGENCIAL
 const GERENTES_AUTORIZADOS = {
-  
+
+  "carlos7sp2-11992617026": "Carlos",
   "isnaldo2z3v": "Isnaldo",
   "antonio2f5d": "Antonio",
   "suzi32nn": "Suzi",
@@ -17,7 +18,7 @@ const GERENTES_AUTORIZADOS = {
   "alexsandrapenha32er-11992617026": "Alexsandra Penha",
   "adriano3gtn-11992617026": "Adriano",
   "chicaoca22": "Chicão",
-  "lacerdac323": "Lacerda",
+  "lacerda7c23-11992617026": "Lacerda Gerente",
   "lancelote35c6": "Lancelote",
   "zuca4k58": "Zuca",
   "fabio9a24": "Fabio",
