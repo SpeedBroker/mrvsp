@@ -21,6 +21,7 @@ const GERENTES_AUTORIZADOS = {
   "alexsandrapenha32er-11992617026": "Alexsandra Penha SP2",
   "adriano3gtn-11992617026": "Adriano SP2",
   "brunaluiza7kls-pix11992617026": "Bruna Luiza SP2",
+  "daniel7ujk-pix11992617026": "Daniel SP@",
 
 };
 
