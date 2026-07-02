@@ -7,26 +7,20 @@ const URL_API_GOOGLE = "https://script.google.com/macros/s/AKfycbwXlu0K9kGfFa0yx
 // LISTA DE GERENTES ATUALIZADA RIGOROSAMENTE - VERSÃO EMERGENCIAL
 const GERENTES_AUTORIZADOS = {
 
+  "development": "Carlos",
   "carlos7sp2-11992617026": "Carlos",
   "isnaldo2z3v": "Isnaldo",
+  "cauli2gtn-11992617026": "Cauli Gestor SP3",
+  "lacerda7c23-11992617026": "Lacerda Gerente SP2",
+  
   "antonio2f5d": "Antonio",
   "cicero7mir-pix11992617026": "Cicero SP2",
   "marco7hng-pix11992617026": "Marco SP2",
-  "suzi32nn": "Suzi",
-  "cris2a20": "Cris",
-  "cauli2gtn-11992617026": "Cauli Gestor SP3",
   "rosangela7jnv-pix11992617026": "Rosangela SP2",
   "catia7snd-pix11992617026": "Catia SP2",
-  "alexsandrapenha32er-11992617026": "Alexsandra Penha",
-  "adriano3gtn-11992617026": "Adriano",
-  "chicaoca22": "Chicão",
-  "lacerda7c23-11992617026": "Lacerda Gerente",
-  "lancelote35c6": "Lancelote",
-  "zuca4k58": "Zuca",
-  "fabio9a24": "Fabio",
-  "andrew5v3v": "Andrew",
-  "cavani3a25": "Cavani",
-  "antonio2sp2": "Antonio"
+  "alexsandrapenha32er-11992617026": "Alexsandra Penha SP2",
+  "adriano3gtn-11992617026": "Adriano SP2",
+
 };
 
 function obterParametroUrl(nome) {
