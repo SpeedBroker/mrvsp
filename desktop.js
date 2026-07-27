@@ -8,6 +8,7 @@ const URL_API_GOOGLE = "https://script.google.com/macros/s/AKfycbwXlu0K9kGfFa0yx
 const GERENTES_AUTORIZADOS = {
 
   "development": "Carlos",
+  "provisorio": "Carlos",
   "carlos7sp2-11992617026": "Carlos",
   "isnaldo2z3v": "Isnaldo",
   "cauli2gtn-11992617026": "Cauli Gestor SP3",
