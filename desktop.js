@@ -39,6 +39,7 @@ const GERENTES_AUTORIZADOS = {
   "barbosa7yui-pix11992617026":"Barbosa SP3",
   "fabio7ntz-pix11992617026":"Fabio SP3",
   "milene7ufs-pix11992617026":"Milene SP3",
+  "evelyn7out-pix11992617026":"Evelyn SP3",
 };
 
 function obterParametroUrl(nome) {
