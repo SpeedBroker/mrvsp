@@ -14,9 +14,9 @@ const GERENTES_AUTORIZADOS = {
   "cauli2gtn-11992617026": "Cauli Gestor SP3",
   "lacerda7c23-11992617026": "Lacerda Gerente SP2",
   
-  "antonio2f5d": "Antonio",
-  "cicero7mir-pix11992617026": "Cicero SP2",
-  "marco7hng-pix11992617026": "Marco SP2",
+  "antonio8f5d-pix11992617026": "Antonio SP2",
+  "cicero8mir-pix11992617026": "Cicero SP2",
+  "marco8hng-pix11992617026": "Marco SP2",
   "rosangela7jnv-pix11992617026": "Rosangela SP2",
   "catia7snd-pix11992617026": "Catia SP2",
   "alexsandrapenha32er-11992617026": "Alexsandra Penha SP2",
