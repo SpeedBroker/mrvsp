@@ -26,7 +26,7 @@ const GERENTES_AUTORIZADOS = {
   "ruiz8hny-pix11992617026": "Ruiz SP2",
   "mizael7irf-pix11992617026": "Mizael SP2",
   "renato8cff-pix11992617026": "Renato SP2",
-  "larissa7erg-pix11992617026": "Larissa SP2",
+  "larissa8frg-pix11992617026": "Larissa SP2",
   "ivone7hti-pix11992617026": "Ivone SP2",
   "susy7urt-pix11992617026":"Susy SP2",
   "nilton7htu-pix11992617026":"Nilton SP2",
