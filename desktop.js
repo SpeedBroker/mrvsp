@@ -4,46 +4,37 @@
 
 const URL_API_GOOGLE = "https://script.google.com/macros/s/AKfycbwXlu0K9kGfFa0yxhhsUoX5MKz3clEOUPUSpuh_2zcS5eqtWzMLIrQezwumD2sd9m4/exec"; 
 
-// LISTA DE GERENTES ATUALIZADA RIGOROSAMENTE - VERSÃO EMERGENCIAL
 const GERENTES_AUTORIZADOS = {
-
   "development": "Carlos",
-  "provisorio": "Carlos",
   "carlos7sp2-11992617026": "Carlos",
   "isnaldo2z3v": "Isnaldo",
-  "cauli8htn-pix11992617026": "Cauli Gestor SP3",
-  "lacerda7c23-11992617026": "Lacerda Gerente SP2",
   
-  "antonio8f5d-pix11992617026": "Antonio SP2",
-  "cicero8mir-pix11992617026": "Cicero SP2",
-  "marco8hng-pix11992617026": "Marco SP2",
-  "rosangela8snv-pix11992617026": "Rosangela SP2",
+  "cauli2gtn-11992617026": "Cauli Gestor SP3",
+  "lacerda7c23-11992617026": "Lacerda Gerente SP2",
+
+  "carlos8beta":"Carlos SP2 BETA",
+  "kauan8beta":"Kauan SP3 BETA",
+  "edson8beta": "Edson SP2 BETA",
+  "barbosa8beta": "Barbosa SP3 BETA",
+  "tarcisio8beta":"Tarcísio SP3",
+  "rodrigo8beta":"Rodrigo SP3 BETA",
+  "isnaldo8beta":"Rodrigo SP3 BETA",
+  "antonio8beta":"Antonio SP2 BETA",
+  "renato8beta":"Renato SP2 BETA",
+  "edu8beta-pix11992617026":"Edu SP3 BETA",
+  
+  "cicero7mir-pix11992617026": "Cicero SP2",
+  "marco7hng-pix11992617026": "Marco SP2",
+  "rosangela7jnv-pix11992617026": "Rosangela SP2",
   "catia7snd-pix11992617026": "Catia SP2",
-  "alexsandrapenha8aer-pix11992617026": "Alexsandra Penha SP2",
+  "alexsandrapenha32er-11992617026": "Alexsandra Penha SP2",
   "adriano3gtn-11992617026": "Adriano SP2",
-  "brunaluiza8lls-pix11992617026": "Bruna Luiza SP2",
+  "brunaluiza7kls-pix11992617026": "Bruna Luiza SP2",
   "daniel7ujk-pix11992617026": "Daniel SP@",
-  "ruiz8hny-pix11992617026": "Ruiz SP2",
+  "ruiz7gny-pix11992617026": "Ruiz SP2",
   "mizael7irf-pix11992617026": "Mizael SP2",
-  "renato8cff-pix11992617026": "Renato SP2",
-  "larissa8frg-pix11992617026": "Larissa SP2",
+  "renato7bff-pix11992617026": "Renato SP2",
   "ivone7hti-pix11992617026": "Ivone SP2",
-  "susy7urt-pix11992617026":"Susy SP2",
-  "nilton7htu-pix11992617026":"Nilton SP2",
-  "edson7hts-pix11992617026":"Edson SP2",
-  "nestor7htn-pix11992617026":"Nestor SP2",
-  "valdeci7ccn-pix11992617026":"Valdeci SP2",
-  "madascan7ncn-pix11992617026":"Madascan SP2",
-  "rodrigo7pon-pix11992617026": "Rodrigo SP3",
-  "kauan8cnc-pix11992617026":"Kauan SP3",
-  "barbosa8zui-pix11992617026":"Barbosa SP3",
-  "fabio7ntz-pix11992617026":"Fabio SP3",
-  "milene7ufs-pix11992617026":"Milene SP3",
-  "evelyn7out-pix11992617026":"Evelyn SP3",
-  "karen8bfg-pix11992617026":"Karen SP3",
-  "armando8j6u-pix11992617026":"Armando SP3",
-  "laila8m3c-pix11992617026":"Laila SP3",
-  "thais8his-pix11992617026":"Thais SP3",
 };
 
 function obterParametroUrl(nome) {
@@ -52,30 +43,23 @@ function obterParametroUrl(nome) {
   return resultados === null ? '' : decodeURIComponent(resultados[1].replace(/\+/g, ' '));
 }
 
-// Pega o código da URL, remove espaços e põe em minúsculo
 const codigoRef = obterParametroUrl('ref').trim().toLowerCase();
 const telaBloqueio = document.getElementById('bloqueio-seguranca');
 const containerResultado = document.getElementById('resultado-validacao');
 const iconeStatus = document.getElementById('icone-status');
 
-// Executa a validação de forma imediata assim que o script carrega
 (function executarControleSeguranca() {
-  
-  // 1. BLOQUEIO SE A URL FOR INCOMPLETA OU COM GERENTE NÃO CADASTRADO
-  // CORRIGIDO: Agora aponta corretamente para GERENTES_AUTORIZADOS
   if (!codigoRef || !GERENTES_AUTORIZADOS[codigoRef]) {
     localStorage.removeItem('speedbroker_username');
     exibirPainelErro("Acesso Negado", "Este código de gerente não está autorizado ou é inválido.");
     throw new Error("Acesso interrompido: Chave de referência inválida.");
   }
 
-  // 2. SOLICITAÇÃO OU CAPTURA DO USUÁRIO (GUIA ANÔNIMA / PRIMEIRO ACESSO)
   let nomeCorretor = localStorage.getItem('speedbroker_username');
 
   if (!nomeCorretor) {
     exibirFormularioIdentificacao();
   } else {
-    // Gerente válido com usuário salvo: envia o log em background e libera imediatamente!
     registrarAcessoPlanilha(codigoRef, nomeCorretor);
     liberarInterfaceDashboard();
   }
@@ -108,8 +92,6 @@ function exibirFormularioIdentificacao() {
         return;
       }
       localStorage.setItem('speedbroker_username', nomeDigitado);
-      
-      // Envia os dados para salvar na planilha e libera a tela na hora
       registrarAcessoPlanilha(codigoRef, nomeDigitado);
       liberarInterfaceDashboard();
     });
@@ -118,23 +100,12 @@ function exibirFormularioIdentificacao() {
 
 function registrarAcessoPlanilha(ref, usuario) {
   const urlFinal = `${URL_API_GOOGLE}?ref=${ref}&userID=${encodeURIComponent(usuario)}&_cb=${new Date().getTime()}`;
-  
-  console.log("Tentando registrar acesso na planilha...");
-  
-  // CORRIGIDO: Retirado o 'no-cors' para evitar o bloqueio de requisição do Google Sheets
-  fetch(urlFinal, { 
-    method: 'GET'
-  })
-  .then(() => {
-    console.log("Requisição de log enviada com sucesso para o servidor.");
-  })
-  .catch(erro => {
-    console.warn("Aviso: Registro processado no servidor.");
-  });
+  fetch(urlFinal, { method: 'GET' })
+  .then(() => { console.log("Requisição de log enviada com sucesso para o servidor."); })
+  .catch(erro => { console.warn("Aviso: Registro processado no servidor."); });
 }
 
 function liberarInterfaceDashboard() {
-  console.log("Acesso liberado via validação de segurança local/contingência.");
   if (telaBloqueio) {
     telaBloqueio.style.transition = "opacity 0.4s ease";
     telaBloqueio.style.opacity = "0";
@@ -161,17 +132,15 @@ function exibirPainelErro(titulo, message) {
   if (document.getElementById('caixa-a')) document.getElementById('caixa-a').innerHTML = '';
 }
 
-// O SEU BLOCO1 COMEÇA EXATAMENTE ABAIXO DESTA LINHA
-
 
 /* ==========================================================================
-   BLOCO 01: CONFIGURAÇÕES E VARIÁVEIS GLOBAIS
+    BLOCO 01: CONFIGURAÇÕES E VARIÁVEIS GLOBAIS
    ========================================================================== */
 let DADOS_PLANILHA = [];
 let DOCUMENTOS_GERAIS = []; 
 let pathAtivo = null;  
 let imovelAtivo = null;  
-let mapaAtivo = 'GSP'; 
+let mapaAtivo = 'GSP';  
 
 const COL = {
     ID: 0, CATEGORIA: 1, ORDEM: 2, 
@@ -191,14 +160,14 @@ const COL = {
 
 
 /* ==========================================================================
-   BLOCO 02: INICIALIZAÇÃO E UTILITÁRIOS
+    BLOCO 02: INICIALIZAÇÃO E UTILITÁRIOS
    ========================================================================== */
 async function iniciarApp() {
     try { 
         await Promise.all([carregarPlanilha(), carregarAbaDocumentos()]);
         configurarBotaoDocumentos(); 
     } catch (err) { 
-        console.error(err); 
+        console.error("Erro ao iniciar app:", err); 
     }
 }
 
@@ -216,9 +185,7 @@ function configurarBotaoDocumentos() {
 
             const painel = document.getElementById('ficha-tecnica');
             if (painel) {
-                let htmlDocs = `
-                    <div style="padding: 10px 0;">
-                `;
+                let htmlDocs = `<div style="padding: 10px 0;">`;
 
                 if (DOCUMENTOS_GERAIS.length === 0) {
                     htmlDocs += `
@@ -242,12 +209,9 @@ function configurarBotaoDocumentos() {
 
 function formatarLinkSeguro(url) {
     if (!url || url === "---" || url === "" || typeof url !== 'string') return "";
-    
     let link = url.trim();
-    
     if (link.includes('drive.google.com')) {
         const match = link.match(/\/d\/(.*?)(\/|$|\?)/) || link.match(/id=(.*?)($|&)/);
-        
         if (match && match[1]) {
             return `https://drive.google.com/file/d/${match[1]}/view?usp=sharing`;
         }
@@ -257,12 +221,9 @@ function formatarLinkSeguro(url) {
 
 function formatarLinkPreview(url) {
     if (!url || url === "---" || url === "" || typeof url !== 'string') return "";
-    
     let link = url.trim();
-    
     if (link.includes('drive.google.com')) {
         const match = link.match(/\/d\/(.*?)(\/|$|\?)/) || link.match(/id=(.*?)($|&)/);
-        
         if (match && match[1]) {
             return `https://drive.google.com/file/d/${match[1]}/preview`;
         }
@@ -272,7 +233,6 @@ function formatarLinkPreview(url) {
 
 function inicializarHoverMiniaturas() {
     const botoesAbrir = document.querySelectorAll('.card-btn-abrir');
-    
     botoesAbrir.forEach(botao => {
         const urlPreview = botao.getAttribute('data-preview');
         if (!urlPreview) return;
@@ -338,21 +298,10 @@ function copiarTexto(texto, msg = "Link copiado!") {
     });
 }
 
-function copiarLink(url) {
-    const linkSeguro = formatarLinkSeguro(url);
-    copiarTexto(linkSeguro, "Link seguro copiado!");
-}
-
-function abrirDocumentoDireto(url) {
-    const linkSeguro = formatarLinkSeguro(url);
-    if (linkSeguro) {
-        window.open(linkSeguro, '_blank');
-    }
-}
 
 /* ==========================================================================
-   BLOCO 03: CARREGAMENTO DE DADOS (GOOGLE SHEETS)
-   ========================================================================= */
+    BLOCO 03: CARREGAMENTO DE DADOS (GOOGLE SHEETS)
+   ========================================================================== */
 async function carregarAbaDocumentos() {
     const SHEET_ID = "15V194P2JPGCCPpCTKJsib8sJuCZPgtbNb-rtgNaLS7E";
     const URL_DOCS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Documentos&v=${new Date().getTime()}`;
@@ -408,10 +357,7 @@ async function carregarPlanilha() {
 
             const cat = (colunas[COL.CATEGORIA] || "").toUpperCase();
             
-            // Captura o valor bruto da coluna de Garagem
             let valorBrutoGaragem = colunas[32];
-            
-            // Tratamento rigoroso: se for "0", vazio, undefined ou nulo, garante que exiba corretamente
             let dadoGaragem = "---";
             if (valorBrutoGaragem !== undefined && valorBrutoGaragem !== null && valorBrutoGaragem.toString().trim() !== "") {
                 dadoGaragem = valorBrutoGaragem.toString().trim();
@@ -456,15 +402,15 @@ async function carregarPlanilha() {
     } catch (e) { console.error(e); }
 }
 
+
 /* ==========================================================================
-   BLOCO 04: LÓGICA DO MAPA E SELEÇÃO
+    BLOCO 04: LÓGICA DO MAPA E SELEÇÃO
    ========================================================================== */
 function obterHtmlZona(zona, tipo) {
     if (tipo === 'N' || !zona || zona === "---") return "";
     return `<span style="font-size:10px; font-weight:bold; color:#666;">${zona}</span>`;
 }
 
-// REVISADO: Agora reconhece também as regiões fora de SP de forma dinâmica
 function detectarClasseZona(zona) {
     if (!zona) return "";
     const z = zona.toUpperCase().trim();
@@ -522,8 +468,9 @@ function atualizarTituloSuperior(texto) {
     } else { titulo.innerText = "SELECIONE UMA REGIÃO NO MAPA"; }
 }
 
+
 /* ==========================================================================
-   BLOCO 05: RENDERIZAÇÃO DOS MAPAS (SVG)
+    BLOCO 05: RENDERIZAÇÃO DOS MAPAS (SVG)
    ========================================================================== */
 function renderizarNoContainer(id, dados, interativo) {
     const container = document.getElementById(id);
@@ -581,8 +528,9 @@ function trocarMapas(completo) {
     desenharMapas(); gerarListaLateral(); 
 }
 
+
 /* ==========================================================================
-   BLOCO 06: LISTA LATERAL
+    BLOCO 06: LISTA LATERAL
    ========================================================================== */
 function gerarListaLateral() {
     const container = document.getElementById('lista-imoveis');
@@ -599,7 +547,7 @@ function gerarListaLateral() {
 
 
 /* ==========================================================================
-   BLOCO 07: CONSTRUÇÃO DA VITRINE (FICHA TÉCNICA)
+    BLOCO 07: CONSTRUÇÃO DA VITRINE (FICHA TÉCNICA AVANÇADA)
    ========================================================================== */
 const criarCardMaterial = (titulo, url, icone) => {
     if (!url || url === "" || url === "---" || typeof url !== 'string') return "";
@@ -681,19 +629,16 @@ function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
         }
         const valorEstoqueColorido = `<span style="color: ${corEstoque}">${selecionado.estoque || "---"} UN.</span>`;
 
-        // Linha inteira estável do Limitador
         html += `
         <div class="grid-cell full-width" style="display: flex; justify-content: center; align-items: center; padding: 6px 10px; background-color: #444444; color: #ffffff; border-bottom: 1px solid #555555; box-sizing: border-box; width: 100%; height: 32px;">
             <strong style="font-size: 0.75rem; text-align: center; word-break: break-word; font-weight: bold; letter-spacing: 0.3px;">${selecionado.limitador}</strong>
         </div>`;
 
-        // Linha inteira estável da Casa Paulista
         html += `
         <div class="grid-cell full-width" style="display: flex; justify-content: center; align-items: center; padding: 6px 10px; background-color: #444444; color: #ffffff; border-bottom: 1px solid #555555; box-sizing: border-box; width: 100%; height: 32px;">
             <strong style="font-size: 0.75rem; text-align: center; word-break: break-word; font-weight: bold; letter-spacing: 0.3px;">${selecionado.casa_paulista}</strong>
         </div>`;
 
-        // Linha inferior dividida perfeitamente em 4 colunas iguais
         html += `
         <div style="display: flex; width: 100%; background-color: #444444; color: #ffffff; border-bottom: 1px solid #555555; box-sizing: border-box; height: 32px;">
             <div style="flex: 1; padding: 6px 4px; border-right: 1px solid #555555; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box;">
@@ -718,7 +663,7 @@ function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
         if (selecionado.tipologiasH) {
             const lines = selecionado.tipologiasH.split(';').map(l => l.trim()).filter(l => l !== "");
             lines.forEach(linhaStr => {
-                const colsArr = inlineLimpa = linhaStr.split(',').map(c => c.trim());
+                const colsArr = linhaStr.split(',').map(c => c.trim());
                 if (colsArr.length > 1 && colsArr[1] !== "" && colsArr[0].toLowerCase().includes("partir")) {
                     precoReal = colsArr[1];
                 }
@@ -742,7 +687,7 @@ function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
                     <p style="margin:0; font-size:0.68rem; color:#444; line-height:1.3; flex:1;">${selecionado.estande}</p>
                     <div style="display:flex; gap:3px; margin-left:5px;">
                         <a href="${urlMapsEstande}" target="_blank" class="btn-maps">MAPS</a>
-                        <button onclick="copiarTexto('${urlMapsEstande}', 'Link do estande copied!')" class="btn-maps" style="border:none; cursor:pointer;">LINK</button>
+                        <button onclick="copiarTexto('${urlMapsEstande}', 'Link do estande copiado!')" class="btn-maps" style="border:none; cursor:pointer;">LINK</button>
                     </div>
                 </div>
             </div>`;
@@ -758,19 +703,19 @@ function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
         };
         html += criarBoxDiferencial('💡 Observação Importante', selecionado.observacoes, '#fff9c4', '#fbc02d', true);
         html += criarBoxDiferencial('📍 Localização', selecionado.localizacao, '#fdf2e9', '#f37021', true);
-        html += criarBoxDiferencial('🚍 Mobilidade', selecionado.mobilidade, '#f1f8e9', '#2e7d32', true);
+        html += criarBoxDiferencial('Calcular Mobilidade', selecionado.mobilidade, '#f1f8e9', '#2e7d32', true);
         html += criarBoxDiferencial('🎭 Cultura e Lazer', selecionado.lazer, '#e3f2fd', '#1565c0', true);
         html += criarBoxDiferencial('🛒 Comércio', selecionado.comercio, '#ffebee', '#c62828', true);
         html += criarBoxDiferencial('🏥 Saúde e Educação', selecionado.saude, '#f3e5f5', '#6a1b9a', false);
         html += `</div>`;
 
         let materiaisHtml = "";
-         materiaisHtml += criarCardMaterial('Book Cliente', selecionado.linkCliente, '📄');
-         materiaisHtml += criarCardMaterial('Book Corretor', selecionado.linkCorretor, '💼');
-         materiaisHtml += extrairLinks(selecionado.linksVideos, '🎬');
-         materiaisHtml += extrairLinks(selecionado.linksPlantas, '📐');
-         materiaisHtml += extrairLinks(selecionado.linksImplant, '📍');
-         materiaisHtml += extrairLinks(selecionado.linksDiversos, '✨');
+        materiaisHtml += criarCardMaterial('Book Cliente', selecionado.linkCliente, '📄');
+        materiaisHtml += criarCardMaterial('Book Corretor', selecionado.linkCorretor, '💼');
+        materiaisHtml += extrairLinks(selecionado.linksVideos, '🎬');
+        materiaisHtml += extrairLinks(selecionado.linksPlantas, '📐');
+        materiaisHtml += extrairLinks(selecionado.linksImplant, '📍');
+        materiaisHtml += extrairLinks(selecionado.linksDiversos, '✨');
         
         if (materiaisHtml !== "") {
             html += `<div style="margin-top: 10px;">
@@ -792,9 +737,9 @@ function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
         let corTexto = (zUpper === 'ZN') ? "#333" : "white";
 
         html += `<div class="titulo-vitrine-faixa" style="background-color: ${corComplexo}; color: ${corTexto}; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 5px; border-radius: 4px; font-size: 0.8rem;">
-                    ${selecionado.nomeFull.toUpperCase()} — ${selecionado.regiao}
-                 </div>`;
-                 
+                     ${selecionado.nomeFull.toUpperCase()} — ${selecionado.regiao}
+                   </div>`;
+                   
         html += `<div class="box-complexo-full" style="border: 1px solid ${corComplexo}; border-radius: 4px; padding: 10px; background: #fff;">
                     <p style="font-size:0.7rem; color:#444; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
                         <span>📍 ${selecionado.endereco}</span> 
@@ -804,8 +749,8 @@ function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
                         </span>
                     </p>
                     <div style="font-size:0.75rem; color:#444; line-height:1.5; text-align:justify;">${selecionado.descLonga}</div>
-                 </div>`;
-                 
+                   </div>`;
+                   
         let materiaisComplexo = extrairLinks(selecionado.linksImplant, '📍');
         if (materiaisComplexo !== "") { 
             html += `<div style="margin-top: 10px; padding: 0 5px;">
@@ -817,3 +762,35 @@ function montarVitrine(selecionado, listaDaCidade, nomeRegiao) {
     painel.innerHTML = html;
     inicializarHoverMiniaturas();
 }
+/* ==========================================================================
+   BLOCO 08: CONTROLE DE EXIBIÇÃO DO SPEEDSIM
+   ========================================================================== */
+document.addEventListener("DOMContentLoaded", function() {
+    const btnSpeedSim = document.getElementById('btn-speedsim');
+    const containerSimulador = document.getElementById('container-simulador-externo');
+    const btnFechar = document.getElementById("fechar-speedsim");
+
+    // Abrir o simulador ao clicar no botão principal
+    if (btnSpeedSim && containerSimulador) {
+        btnSpeedSim.addEventListener('click', function(e) {
+            e.preventDefault();
+            containerSimulador.style.display = 'flex'; // Mantém o flex para centralizar na tela inteira
+        });
+    }
+
+    // Fechar o simulador ao clicar no botão "X"
+    if (btnFechar && containerSimulador) {
+        btnFechar.addEventListener('click', function() {
+            containerSimulador.style.display = 'none';
+        });
+    }
+
+    // Opcional: Fechar também se clicar fora da caixa branca (no fundo escuro)
+    if (containerSimulador) {
+        containerSimulador.addEventListener('click', function(e) {
+            if (e.target === containerSimulador) {
+                containerSimulador.style.display = 'none';
+            }
+        });
+    }
+});
