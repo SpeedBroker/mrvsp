@@ -7,17 +7,13 @@
     <title>Dashboard MRV SP</title>
     <link rel="stylesheet" href="desktop.css">
     <style>
-        /* ==========================================================================
-           CONSOLIDAÇÃO DO CABEÇALHO E CENTRALIZAÇÃO DOS BOTÕES (CORRIGIDO)
-           ========================================================================== */
-        
         div.header {
             display: flex !important;
             justify-content: space-between !important;
             align-items: center !important;
             padding: 0 20px !important;
             box-sizing: border-box !important;
-            gap: 20px !important; /* Garante que título e botões nunca grudem */
+            gap: 20px !important;
         }
 
         .titulo-mrv-centro {
@@ -26,10 +22,10 @@
             font-weight: bold !important;
             text-transform: uppercase !important;
             text-align: left !important;
-            font-size: 1.1rem !important; /* Ajuste milimétrico para melhor legibilidade */
+            font-size: 1.1rem !important;
             color: #ffffff !important;
             z-index: 1 !important;
-            flex: 1 !important; /* Ocupa de forma inteligente o espaço dinâmico à esquerda */
+            flex: 1 !important;
             overflow: hidden !important;
             text-overflow: ellipsis !important;
             white-space: nowrap !important;
@@ -42,22 +38,17 @@
             align-items: center !important;
             height: 100% !important;
             z-index: 10 !important;
-            flex-shrink: 0 !important; /* Impede os botões de esmagarem ou reduzirem de tamanho */
+            flex-shrink: 0 !important;
         }
 
-        button#btn-documentos, 
-        button#btn-sobre,
-        button#btn-anuncio {
+        button#btn-documentos {
             all: unset !important;
             box-sizing: border-box !important;
             background-color: #febd11 !important;
             color: #004d24 !important;
             border-radius: 4px !important;
-            
-            /* Altura calibrada com sucesso */
             height: 34px !important;
             padding: 0 18px !important;
-            
             font-weight: bold !important;
             font-size: 0.8rem !important;
             text-transform: uppercase !important;
@@ -70,20 +61,84 @@
             transition: background-color 0.2s ease, transform 0.1s ease !important;
             white-space: nowrap !important;
         }
-
-        button#btn-documentos:hover, 
-        button#btn-sobre:hover {
+        button#btn-documentos:hover {
             background-color: #e0a60f !important;
         }
 
-        /* ESTILO EXCLUSIVO DO BOTÃO DE ANÚNCIO PARA DESTACAR NA REUNIÃO */
-        button#btn-anuncio {
-            background-color: #f37021 !important; /* Laranja MRV vibrante */
+        button#btn-speedsim {
+            all: unset !important;
+            box-sizing: border-box !important;
+            background-color: #1a73e8 !important;
             color: #ffffff !important;
+            border-radius: 4px !important;
+            height: 34px !important;
+            padding: 0 18px !important;
+            font-weight: bold !important;
+            font-size: 0.8rem !important;
+            text-transform: uppercase !important;
+            cursor: pointer !important;
+            text-align: center !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            transition: background-color 0.2s ease, transform 0.1s ease !important;
+            white-space: nowrap !important;
+        }
+        button#btn-speedsim:hover {
+            background-color: #1557b0 !important;
         }
 
-        button#btn-anuncio:hover {
-            background-color: #dca206 !important; /* Muda para dourado no hover */
+        /* Estilo do Modal do SpeedSim (Inicia Oculto) */
+        #container-simulador-externo {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 999998;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-speedsim-conteudo {
+            background: #ffffff;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            overflow-y: auto;
+            position: relative;
+            padding: 25px;
+            box-sizing: border-box;
+        }
+
+        .btn-fechar-speedsim {
+            all: unset !important;
+            box-sizing: border-box !important;
+            background-color: #febd11 !important;
+            color: #004d24 !important;
+            border-radius: 4px !important;
+            height: 34px !important;
+            padding: 0 18px !important;
+            font-weight: bold !important;
+            font-size: 0.8rem !important;
+            text-transform: uppercase !important;
+            cursor: pointer !important;
+            text-align: center !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            transition: background-color 0.2s ease, transform 0.1s ease !important;
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
+        }
+        .btn-fechar-speedsim:hover {
+            background-color: #e0a60f !important;
         }
     </style>
 </head>
@@ -110,9 +165,8 @@
         </h1>
         
         <div class="container-botoes-mrv">
-            <button id="btn-anuncio">🚀 Anúncio Clique-Único (Breve)</button>
+            <button id="btn-speedsim">⚡ SpeedSim</button>
             <button id="btn-documentos">Documentos</button>
-            <button id="btn-sobre">Sobre</button>
         </div>
     </div>
 
@@ -135,49 +189,396 @@
         </aside>
     </div>
 
-    <div id="modal-sobre" class="modal">
-        <div class="modal-content">
-            <span class="modal-close">&times;</span>
-            <h2 style="color: var(--mrv-verde); margin-bottom: 10px;">Sobre o Projeto</h2>
-            <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 20px;">
+<!-- ========================================================== -->
+<!-- BLOCO DO MODAL: SPEEDSIM (CABEÇALHO UNIFICADO COM MÉTRICAS) -->
+<!-- ========================================================== -->
+<!-- ESTILOS DO SPEEDSIM -->
+<style>
+    :root {
+        --mrv-verde: #004d24;
+        --mrv-amarelo: #febd11;
+    }
+    input, select, button {
+        font-family: inherit;
+    }
+
+    .speedsim-coluna-tabela {
+        border: 1px solid #333;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #ffffff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .speedsim-scroll-wrapper {
+        max-height: 420px;
+        overflow-y: auto;
+    }
+
+    #tabela-cabecalho-fixo, #tabela-comparativa {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.75rem;
+        table-layout: fixed;
+    }
+
+    #tabela-cabecalho-fixo th, #tabela-comparativa th {
+        padding: 6px;
+        border: 1px solid #aaa;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tabela-cabecalho-fixo th {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+    }
+
+    /* Cores Temáticas MRV para Blocos SAC (Verde) e PRICE (Amarelo) */
+    .th-bloco-sac {
+        background-color: #d1e7dd !important;
+        color: #0f5132;
+    }
+    .sac-sub {
+        background-color: #e8f5e9 !important;
+        color: #1b5e20;
+    }
+
+    .th-bloco-price {
+        background-color: #fff3cd !important;
+        color: #664d03;
+    }
+    .price-sub {
+        background-color: #fffdec !important;
+        color: #5c4300;
+    }
+
+    #tabela-comparativa td {
+        padding: 5px 6px;
+        border: 1px solid #dcdcdc;
+        text-align: right;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: middle;
+    }
+
+    #tabela-comparativa td:first-child {
+        text-align: center;
+        font-weight: bold;
+        color: #444;
+        background-color: #f9f9f9;
+    }
+
+    .vazio-msg {
+        text-align: center !important;
+        padding: 25px;
+        color: #777;
+        background: #fff;
+        font-size: 0.85rem;
+    }
+
+    .col-mes { width: 8%; }
+    .col-sac-1, .col-sac-2, .col-sac-3, .col-sac-4,
+    .col-price-1, .col-price-2, .col-price-3, .col-price-4 { width: 11.5%; }
+</style>
+
+<input type="hidden" id="sim-status-teto" value="">
+
+<div id="container-simulador-externo" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.6); z-index: 999998; justify-content: center; align-items: center; box-sizing: border-box; padding: 10px;">        
+    <div class="modal-speedsim-conteudo" style="background: #ffffff; width: 99vw; max-width: 99vw; height: 97vh; max-height: 97vh; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); overflow-y: auto; position: relative; padding: 20px; box-sizing: border-box;">
             
-            <div class="modal-body" style="text-align: center;">
-                <p style="margin-bottom: 20px; color: #333; line-height: 1.5;">
-                    Esse dashboard foi feito para acessarmos de forma rápida informações básicas dos residenciais MRV durante atendimento a leads.
-                </p>
+        <h2 style="color: #ffffff; background-color: var(--mrv-verde, #004d24); margin-top: 0; margin-bottom: 20px; text-transform: uppercase; font-size: 1.2rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #febd11; padding: 12px 15px; border-radius: 6px; gap: 10px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                <span>📊 SPEEDSIM - SIMULADOR MCMV</span>
+                <span style="font-size: 0.75rem; font-weight: normal; color: #ffffff; text-transform: none;">Simule financiamento com regras de Avaliação, PRICE / SAC e Comparativo em tempo real.</span>
+            </div>
+            <button class="btn-fechar-speedsim" id="fechar-speedsim" onclick="fecharSimulador()">Fechar</button>
+        </h2>
+       
+        <div class="modal-body">
+           <!-- Caixa de inputs superior com contorno padrão igual às caixas SAC/PRICE -->
+           <div style="background-color: #f9f9f9; border: 1px solid #333; border-radius: 8px; padding: 12px; margin-bottom: 20px;">
                 
-                <div style="background: #fff9c4; padding: 15px; border-radius: 8px; border-left: 5px solid #fbc02d; margin-bottom: 25px; text-align: left;">
-                    <p style="font-size: 0.9rem; color: #444; line-height: 1.6;">
-                        As informações podem estar desatualizadas e até erradas, caso encontre algum erro ou se você tiver algum material que esta faltando nele como books ou vídeos, por favor, envie pra mim pelo whatsapp através do botão abaixo:
-                    </p>
+                <div style="display: flex; flex-wrap: nowrap; gap: 10px; align-items: center; margin-bottom: 12px; font-size: 0.8rem; background: transparent; border: none; padding: 0; color: #000; justify-content: space-between;">
+                    
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <label style="white-space: nowrap; color: #000; font-weight: normal;">Cidade:</label>
+                        <select id="sim-cidade" onchange="atualizarTetoCidade(); simularFluxo()" style="width: 115px; font-size: 0.8rem; padding: 2px; border: 1px solid #ccc; border-radius: 4px; color: #000; background: #fff;">
+                            <option value="">Selecione...</option>
+                            <option value="SP">São Paulo - SP</option>
+                            <option value="CAMP">Campinas - SP</option>
+                            <option value="COT">Cotia - SP</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <label style="white-space: nowrap; color: #000; font-weight: normal;"><input type="radio" name="base-financiamento" value="imovel" checked onchange="atualizarTetoCidade(); simularFluxo()"> Imóvel:</label>
+                        <input type="text" id="sim-val-imovel" value="" placeholder="R$ 0,00" oninput="mascararMoeda(this)" onblur="verificarTetoImovel(); simularFluxo()" style="width: 115px; text-align: right; font-size: 0.8rem; color: #000; background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 2px 4px;">
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <label style="white-space: nowrap; color: #000; font-weight: normal;"><input type="radio" name="base-financiamento" value="avaliacao" onchange="atualizarTetoCidade(); simularFluxo()"> Avaliação:</label>
+                        <input type="text" id="sim-val-avaliacao" value="" placeholder="R$ 0,00" oninput="mascararMoeda(this)" onblur="simularFluxo()" style="width: 115px; text-align: right; font-size: 0.8rem; color: #000; background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 2px 4px;">
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <label style="color: #000; font-weight: normal; white-space: nowrap;">Bom Pagador:</label>
+                        <input type="text" id="sim-bom-pagador" value="" placeholder="R$ 0,00" oninput="mascararMoeda(this)" onblur="simularFluxo()" style="width: 115px; text-align: right; font-size: 0.8rem; color: #000; background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 2px 4px;">
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <label style="white-space: nowrap; color: #000; font-weight: normal;">FGTS:</label>
+                        <input type="text" id="sim-fgts" value="" placeholder="R$ 0,00" oninput="mascararMoeda(this)" onblur="simularFluxo()" style="width: 115px; text-align: right; font-size: 0.8rem; color: #000; background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 2px 4px;">
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <label style="white-space: nowrap; color: #000; font-weight: normal;">Renda:</label>
+                        <input type="text" id="sim-renda" value="" placeholder="R$ 0,00" oninput="mascararMoeda(this)" onblur="simularFluxo()" style="width: 115px; text-align: right; font-size: 0.8rem; color: #000; background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 2px 4px;">
+                    </div>
                 </div>
 
-                <a href="https://wa.me/5511992617026?text=Olá%20Carlos,%20encontrei%20um%20erro/material%20para%20o%20Dashboard" target="_blank" id="btn-whatsapp-feedback" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
-                    <span style="margin-right: 10px;">📱</span> Carlos Custódio - Enviar Feedback
-                </a>
-            </div>
-        </div>
-    </div>
+                <div style="display: flex; flex-wrap: nowrap; gap: 12px; align-items: center; font-size: 0.8rem; border-top: 1px dashed #ddd; padding-top: 10px; color: #000;">
+                    
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <label style="white-space: nowrap; color: #000; font-weight: normal;">Nasc:</label>
+                        <input type="date" id="sim-data-nasc" value="" min="1900-01-01" max="2100-12-31" oninput="if(this.value && this.value.split('-')[0].length > 4) { let p = this.value.split('-'); p[0] = p[0].slice(0, 4); this.value = p.join('-'); } simularFluxo()" style="font-size: 0.8rem; color: #000;">
+                    </div>
 
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <label style="white-space: nowrap; color: #000; font-weight: normal;">Máx:</label>
+                        <input type="number" id="sim-prazo-finan" value="420" style="width: 40px; text-align: center; font-size: 0.8rem; color: #000;" oninput="simularFluxo()"> parc.
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <label style="white-space: nowrap; color: #000; font-weight: normal;"><input type="checkbox" id="sim-dependente" checked onchange="simularFluxo()"> Mais de um Comprador/Dependente</label>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px; background: transparent; padding: 0; border: none;">
+                        <label style="white-space: nowrap; font-size: 0.8rem; color: #000; font-weight: normal;"><input type="radio" name="opt-redutor" value="sim" checked onchange="simularFluxo()"> C/ redutor</label>
+                        <label style="white-space: nowrap; font-size: 0.8rem; color: #000; font-weight: normal;"><input type="radio" name="opt-redutor" value="nao" onchange="simularFluxo()"> S/ redutor</label>
+                    </div>
+
+                    <div style="margin-left: auto; background-color: #e8f5e9; padding: 4px 10px; border-radius: 4px; border: 1px solid var(--mrv-verde, #004d24); display: flex; align-items: center; gap: 5px;">
+                        <label style="color: var(--mrv-verde, #004d24); font-weight: bold; white-space: nowrap;">Subsidio:</label>
+                        <input type="text" id="sim-subsidio-val" value="R$ 0,00" readonly style="border: none; background: transparent; font-weight: bold; color: var(--mrv-verde, #004d24); width: 85px; text-align: right; font-size: 0.8rem;">
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+
+                <div style="border: 1px solid #333; border-radius: 8px; padding: 12px; background: #fff;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <strong style="color: var(--mrv-verde, #004d24); font-size: 0.95rem;">
+                            SISTEMA SAC (PARCELAS DECRESCENTES) <span id="sac-detalhe-titulo" style="font-size: 0.75rem; font-weight: normal; color: #555;">(0,0% a 8,16% a.a.)</span>
+                        </strong>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1.1fr auto 1.5fr; gap: 12px; font-size: 0.8rem; align-items: center;">
+                        <div style="display: grid; grid-template-columns: 155px 1fr; row-gap: 8px; align-items: center;">
+                            <span>VALOR DO IMÓVEL:</span>
+                            <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="sac-val-imovel">0,00</span></strong>
+
+                            <span>SUBSÍDIO:</span>
+                            <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="sac-val-subsidio">0,00</span></strong>
+
+                            <span>VLR. IMÓVEL LIQUIDO:</span>
+                            <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="sac-val-imovel-liquido">0,00</span></strong>
+
+                            <span>FINANCIAMENTO:</span>
+                            <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="sac-val-financiamento">0,00</span></strong>
+
+                            <span>ENTRADA TOTAL:</span>
+                            <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="sac-val-entrada-total">0,00</span></strong>
+
+                            <span>FGTS:</span>
+                            <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="sac-val-fgts">0,00</span></strong>
+
+                            <span>BOM PAGADOR:</span>
+                            <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="sac-val-bom-pagador">0,00</span></strong>
+                        </div>
+
+                        <div style="border-left: 1px solid #333; height: 100%;"></div>
+
+                        <div style="display: grid; grid-template-columns: 130px 1fr; row-gap: 8px; column-gap: 8px; align-items: center;">
+                            <span>ENTRADA BRUTA:</span>
+                            <strong style="display: flex; justify-content: space-between; width: 95px; text-align: right;"><span>R$</span><span id="sac-val-entrada-bruta">0,00</span></strong>        
+                            
+                            <span>ATO:</span>
+                            <div style="display: flex; align-items: center; gap: 4px;">
+                                <input type="text" id="sac-input-ato" value="R$ 0,00" placeholder="R$ 0,00" oninput="mascararMoeda(this)" onblur="simularFluxo()" style="width: 95px; text-align: right; font-size: 0.8rem; border: 1px solid #ccc; border-radius: 4px; padding: 2px 4px; background: #fff;">
+                                <span>=</span>
+                                <input type="text" id="sac-pct-ato" value="0.0%" readonly style="width: 40px; text-align: center; font-size: 0.8rem; border: none; background: transparent; font-weight: bold;">
+                                <span style="font-size: 0.65rem; color: #555; white-space: nowrap;">DO TOTAL</span>
+                            </div>
+
+                            <span>SINAL:</span>
+                            <div style="display: flex; align-items: center; gap: 4px;">
+                                <strong style="display: flex; justify-content: space-between; width: 95px; text-align: right;"><span>R$</span><span id="sac-val-sinal">0,00</span></strong>
+                                <span style="font-size: 0.7rem;">EM</span>
+                                <input type="number" id="sac-parc-sinal" value="5" min="1" max="5" oninput="if(parseInt(this.value)>5)this.value=5; simularFluxo()" style="width: 30px; text-align: center; font-size: 0.75rem;">
+                            </div>
+
+                            <span>ENTRADA LIQ.:</span>
+                            <div style="display: flex; align-items: center; gap: 4px;">
+                                <strong style="display: flex; justify-content: space-between; width: 95px; text-align: right;"><span>R$</span><span id="sac-val-entrada-liquida">0,00</span></strong>
+                                <span style="font-size: 0.7rem;">EM</span>
+                                <input type="number" id="sac-parc-liquida" value="30" style="width: 30px; text-align: center; font-size: 0.75rem;" oninput="simularFluxo()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="border: 1px solid #333; border-radius: 8px; padding: 12px; background: #fff;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <strong style="color: var(--mrv-verde, #004d24); font-size: 0.95rem;">
+                            SISTEMA PRICE (PARCELAS FIXAS) <span id="price-detalhe-titulo" style="font-size: 0.75rem; font-weight: normal; color: #555;">(0,0% a 8,16% a.a.)</span>
+                        </strong>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1.1fr auto 1.5fr; gap: 12px; font-size: 0.8rem; align-items: center;">
+                        <div style="display: grid; grid-template-columns: 155px 1fr; row-gap: 8px; align-items: center;">
+                            <span>VALOR DO IMÓVEL:</span>
+                            <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="price-val-imovel">0,00</span></strong>
+
+                            <span>SUBSÍDIO:</span>
+                            <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="price-val-subsidio">0,00</span></strong>
+
+                            <span>VLR. IMÓVEL LIQUIDO:</span>
+                            <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="price-val-imovel-liquido">0,00</span></strong>
+
+                            <span>FINANCIAMENTO:</span>
+                            <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="price-val-financiamento">0,00</span></strong>
+
+                            <span>ENTRADA TOTAL:</span>
+                            <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="price-val-entrada-total">0,00</span></strong>
+
+                            <span>FGTS:</span>
+                            <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="price-val-fgts">0,00</span></strong>
+
+                            <span>BOM PAGADOR:</span>
+                            <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="price-val-bom-pagador">0,00</span></strong>
+                        </div>
+
+                        <div style="border-left: 1px solid #333; height: 100%;"></div>
+
+                        <div style="display: grid; grid-template-columns: 130px 1fr; row-gap: 8px; column-gap: 8px; align-items: center;">
+                            <span>ENTRADA BRUTA:</span>
+                            <strong style="display: flex; justify-content: space-between; width: 95px; text-align: right;"><span>R$</span><span id="price-val-entrada-bruta">0,00</span></strong>        
+                            
+                            <span>ATO:</span>
+                            <div style="display: flex; align-items: center; gap: 4px;">
+                                <input type="text" id="price-input-ato" value="R$ 0,00" placeholder="R$ 0,00" oninput="mascararMoeda(this)" onblur="simularFluxo()" style="width: 95px; text-align: right; font-size: 0.8rem; border: 1px solid #ccc; border-radius: 4px; padding: 2px 4px; background: #fff;">
+                                <span>=</span>
+                                <input type="text" id="price-pct-ato" value="0.0%" readonly style="width: 40px; text-align: center; font-size: 0.8rem; border: none; background: transparent; font-weight: bold;">
+                                <span style="font-size: 0.65rem; color: #555; white-space: nowrap;">DO TOTAL</span>
+                            </div>
+
+                            <span>SINAL:</span>
+                            <div style="display: flex; align-items: center; gap: 4px;">
+                                <strong style="display: flex; justify-content: space-between; width: 95px; text-align: right;"><span>R$</span><span id="price-val-sinal">0,00</span></strong>
+                                <span style="font-size: 0.7rem;">EM</span>
+                                <input type="number" id="price-parc-sinal" value="5" min="1" max="5" oninput="if(parseInt(this.value)>5)this.value=5; simularFluxo()" style="width: 30px; text-align: center; font-size: 0.75rem;">
+                            </div>
+
+                            <span>ENTRADA LIQ.:</span>
+                            <div style="display: flex; align-items: center; gap: 4px;">
+                                <strong style="display: flex; justify-content: space-between; width: 95px; text-align: right;"><span>R$</span><span id="price-val-entrada-liquida">0,00</span></strong>
+                                <span style="font-size: 0.7rem;">EM</span>
+                                <input type="number" id="price-parc-liquida" value="30" style="width: 30px; text-align: center; font-size: 0.75rem;" oninput="simularFluxo()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Tabela Unificada com Cores Distintas para SAC e PRICE -->
+            <div class="speedsim-coluna-tabela">
+                <div class="tabela-cabecalho-fixo-container">
+                    <table id="tabela-cabecalho-fixo">
+                        <colgroup>
+                            <col class="col-mes">
+                            <col class="col-sac-1">
+                            <col class="col-sac-2">
+                            <col class="col-sac-3">
+                            <col class="col-sac-4">
+                            <col class="col-price-1">
+                            <col class="col-price-2">
+                            <col class="col-price-3">
+                            <col class="col-price-4">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th rowspan="2">Mês</th>
+                                <th colspan="4" class="th-bloco-sac">
+                                    <div class="th-sistema-titulo" style="display: flex; justify-content: center; align-items: center; gap: 10px;">
+                                        <span>SISTEMA SAC</span>
+                                        <span style="font-weight: normal; font-size: 0.75rem; background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px;">Total: <strong id="res-sac-total-parcela">R$ 0,00</strong></span>
+                                    </div>
+                                </th>
+                                <th colspan="4" class="th-bloco-price">
+                                    <div class="th-sistema-titulo" style="display: flex; justify-content: center; align-items: center; gap: 10px;">
+                                        <span>SISTEMA PRICE</span>
+                                        <span style="font-weight: normal; font-size: 0.75rem; background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px;">Total: <strong id="res-price-total-parcela">R$ 0,00</strong></span>
+                                    </div>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th class="sac-sub col-sac-1">Parcela</th>
+                                <th class="sac-sub col-sac-2">Amortização</th>
+                                <th class="sac-sub col-sac-3">Juros</th>
+                                <th class="sac-sub col-sac-4">Saldo Dev.</th>
+                                <th class="price-sub col-price-1">Parcela</th>
+                                <th class="price-sub col-price-2">Amortização</th>
+                                <th class="price-sub col-price-3">Juros</th>
+                                <th class="price-sub col-price-4">Saldo Dev.</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+
+                <div class="speedsim-scroll-wrapper">
+                    <table id="tabela-comparativa">
+                        <colgroup>
+                            <col class="col-mes">
+                            <col class="col-sac-1">
+                            <col class="col-sac-2">
+                            <col class="col-sac-3">
+                            <col class="col-sac-4">
+                            <col class="col-price-1">
+                            <col class="col-price-2">
+                            <col class="col-price-3">
+                            <col class="col-price-4">
+                        </colgroup>
+                        <tbody id="tabela-unificada-body">
+                            <tr><td colspan="9" class="vazio-msg">Digite o valor do Imóvel e a renda para simular...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+<!-- ========================================================== -->
     <script src="mapa-SP.js" defer></script>
     <script src="desktop.js" defer></script>
-    <script src="anuncios.js" defer></script>
+    <script src="simulador.js" defer></script>
 
     <script>
         window.addEventListener('load', () => {
-            console.log("Todos os recursos e scripts foram totalmente carregados.");
-            
-            // Verifica se a função iniciarApp foi declarada no desktop.js
             if (typeof iniciarApp === 'function') {
                 iniciarApp();
             } else {
-                console.error("Erro Crítico: A função 'iniciarApp' não foi encontrada no escopo global.");
-                // Tentativa de segurança caso haja delay no carregamento
                 setTimeout(() => {
                     if (typeof iniciarApp === 'function') {
                         iniciarApp();
                     } else {
-                        alert("Não foi possível iniciar o aplicativo. Verifique o console do navegador (F12) para detalhes.");
+                        alert("Não foi possível iniciar o aplicativo.");
                     }
                 }, 500);
             }
