@@ -38,7 +38,7 @@ const tabelaCidades = [
   { municipio: "Itaquaquecetuba", populacao: 389513, teto: 235000 },
   { municipio: "Suzano", populacao: 324911, teto: 235000 },
   { municipio: "Cotia", populacao: 294359, teto: 210000 },
-  { municipio: "Vargem Grande Paulista", populacao: 53273, teto: 210000 }
+  { municipio: "Vargem Grande Paulista", populacao: 53273, teto: 230000 }
 ];
 
 const tabelaTaxasFaixas = [
