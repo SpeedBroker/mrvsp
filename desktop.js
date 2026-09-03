@@ -5,9 +5,6 @@
 const URL_API_GOOGLE = "https://script.google.com/macros/s/AKfycbwXlu0K9kGfFa0yxhhsUoX5MKz3clEOUPUSpuh_2zcS5eqtWzMLIrQezwumD2sd9m4/exec"; 
 
 const GERENTES_AUTORIZADOS = {
-  "alexsandrapenha8aer-pix11992617026": "Alexsandra Penha SP2",
-
-  
   "development": "Carlos",
   "carlos7sp2-11992617026": "Carlos",
   "isnaldo2z3v": "Isnaldo",
@@ -30,7 +27,7 @@ const GERENTES_AUTORIZADOS = {
   "marco7hng-pix11992617026": "Marco SP2",
   "rosangela7jnv-pix11992617026": "Rosangela SP2",
   "catia7snd-pix11992617026": "Catia SP2",
- 
+  "alexsandrapenha32er-11992617026": "Alexsandra Penha SP2",
   "adriano3gtn-11992617026": "Adriano SP2",
   "brunaluiza7kls-pix11992617026": "Bruna Luiza SP2",
   "daniel7ujk-pix11992617026": "Daniel SP@",
