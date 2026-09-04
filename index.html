@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpeedBroker MRV — Autenticação</title>
+    <title>SpeedBroker — Autenticação</title>
     <style>
         :root {
             --mrv-verde: #004d24;
@@ -72,8 +72,8 @@
     </div>
 
     <script>
-        // COMPLETO: Insira aqui a URL do seu Web App atualizado do Google Apps Script
-        const URL_API_GOOGLE = "COLE_AQUI_A_SUA_URL_DO_WEB_APP";
+        // Insira aqui a URL do seu Web App atualizado do Google Apps Script
+        const URL_API_GOOGLE = "https://script.google.com/macros/s/AKfycbycqOwW3k1okKJVLiH4M0Kx5ABoCVqDZikE7bBw6xBRLqjRR7I05NE6ZjzpX--dHA/exec";
 
         function obterParametroUrl(nome) {
             var regex = new RegExp('[\\?&]' + nome + '=([^&#]*)');
@@ -82,10 +82,10 @@
         }
 
         function obterOuCriarIdentificadorMaquina() {
-            let idMaquina = localStorage.getItem('mrv_dispositivo_id');
+            let idMaquina = localStorage.getItem('SpeedBroker_dispositivo_id');
             if (!idMaquina) {
                 idMaquina = 'usr_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('mrv_dispositivo_id', idMaquina);
+                localStorage.setItem('SpeedBroker_dispositivo_id', idMaquina);
             }
             return idMaquina;
         }
@@ -94,7 +94,7 @@
         const painel = document.getElementById('painel-status');
 
         if (!ref) {
-            exibirAcessoRecusado("Acesso Recusado", "Você tentou acessar a URL direta sem o código do seu gerente regional. Solicite o link oficial.");
+            exibirAcessoRecusado("Acesso Recusado", "Você tentou acessar a URL direta sem o código. Solicite um link pelo 11 99261 7026.");
         } else {
             const userID = obterOuCriarIdentificadorMaquina();
 
@@ -104,7 +104,6 @@
                 <p>Verificando integridade das cotas digitais do dispositivo.</p>
             `;
 
-            // Faz a requisição enviando obrigatoriamente o ref E o userID
             fetch(`${URL_API_GOOGLE}?ref=${ref}&userID=${userID}`)
                 .then(response => response.json())
                 .then(dados => {
@@ -115,7 +114,6 @@
                             <p>Carregando o painel de residenciais...</p>
                         `;
                         setTimeout(() => {
-                            // Encaminha para o desktop passando os dois parâmetros na URL para manter sincronia
                             window.location.href = `desktop.html?ref=${ref}&userID=${userID}`;
                         }, 1200);
                     } else {
