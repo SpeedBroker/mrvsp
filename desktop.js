@@ -5,7 +5,7 @@
 const URL_API_GOOGLE = "https://script.google.com/macros/s/AKfycbwXlu0K9kGfFa0yxhhsUoX5MKz3clEOUPUSpuh_2zcS5eqtWzMLIrQezwumD2sd9m4/exec"; 
 
 const GERENTES_AUTORIZADOS = {
-  "development": "Carlos",
+  "andrew9pbg": "Andrew Gerente SP3",
   "carlos7sp2-11992617026": "Carlos",
   "isnaldo2z3v": "Isnaldo",
   
