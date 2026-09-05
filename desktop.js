@@ -8,6 +8,7 @@ const GERENTES_AUTORIZADOS = {
   "carlos9ilw-pix11992617026":"Carlos SP3",
   "andrew9dgl-pix11992617026":"Andrew SP3",
   "cauli9egq-pix11992617026":"Cauli SP3",
+  "geise9fto-pix11992617026":"Geise SP3",
   "rodrigo9ffj-pix11992617026":"Rodrigo SP3",
   "kauan9jzu-pix11992617026":"Kauan SP3",
   "barbosa9fzi-pix11992617026":"Barbosa SP3",
@@ -35,6 +36,7 @@ const GERENTES_AUTORIZADOS = {
   "catia9gzu-pix11992617026":"Catia SP3",
   "cicero9kxb-pix11992617026":"Cicero SP3",
   "cadao9ngm-pix11992617026":"Cadao SP3",
+  
 };
 
 function obterParametroUrl(nome) {
