@@ -9,6 +9,7 @@ const GERENTES_AUTORIZADOS = {
   "andrew9dgl-pix11992617026":"Andrew SP3",
   "cauli9egq-pix11992617026":"Cauli SP3",
   "geise9fto-pix11992617026":"Geise SP3",
+  "tarcisio9kyn-pix11992617026":"Tarcisio SP3",
   "rodrigo9ffj-pix11992617026":"Rodrigo SP3",
   "kauan9jzu-pix11992617026":"Kauan SP3",
   "barbosa9fzi-pix11992617026":"Barbosa SP3",
@@ -20,7 +21,7 @@ const GERENTES_AUTORIZADOS = {
   "tati9uoe-pix11992617026":"Tati SP3",
   "anne9deb-pix11992617026":"Anne SP3",
   "edu9glq-pix11992617026":"Edu SP3",
-  "tarcisio9kyn-pix11992617026":"Tarcisio SP3",
+  
 
   "alexsandrapenha9vva-pix11992617026":"Alexsandrapenha SP3",
   "talissa9vxj-pix11992617026":"Talissa SP3",
