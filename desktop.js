@@ -5,8 +5,8 @@
 const URL_API_GOOGLE = "https://script.google.com/macros/s/AKfycbwXlu0K9kGfFa0yxhhsUoX5MKz3clEOUPUSpuh_2zcS5eqtWzMLIrQezwumD2sd9m4/exec"; 
 
 const GERENTES_AUTORIZADOS = {
-  "carlos9ilw-pix11992617026":"Carlos SP3",
-  "andrew9dgl-pix11992617026":"Andrew SP3",
+  "carlos10drc-pix11992617026":"Carlos SP3",
+  "andrew10qxd-pix11992617026":"Andrew SP3",
   "cauli9egq-pix11992617026":"Cauli SP3",
   "geise10ukd-pix11992617026":"Geise SP3",
   "tarcisio9kyn-pix11992617026":"Tarcisio SP3",
