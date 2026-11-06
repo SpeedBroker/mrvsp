@@ -41,6 +41,7 @@ const GERENTES_AUTORIZADOS = {
   "cicero9kxb-pix11992617026":"Cicero SP2",
   "cadao10wea-pix11992617026":"Cadao SP2",
   "valdeci10kxc-pix11992617026":"Valdeci SP2",
+  "dayane11ihx-pix11992617026":"Dayane SP3",
   
 };
 
