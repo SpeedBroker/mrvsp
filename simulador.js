@@ -751,51 +751,76 @@ function gerarTextoWhatsApp(sistema) {
   
   // 4. Dados específicos do sistema (SAC ou PRICE)
   const financiamento = document.getElementById(`${sistema}-val-financiamento`).innerText;
-  const entradaTotal = document.getElementById(`${sistema}-val-entrada-total`).innerText;
-  const bomPagador = document.getElementById(`${sistema}-val-bom-pagador`).innerText;
   const qtdParcelas = document.getElementById('sim-prazo-finan').value;
+  const bomPagador = document.getElementById(`${sistema}-val-bom-pagador`).innerText;
   
-  // 5. Valores da Entrada para montar o texto final
+  // 5. Valores da Entrada para montar o texto
   const entradaBruta = document.getElementById(`${sistema}-val-entrada-bruta`).innerText;
   const valorAto = document.getElementById(`${sistema}-input-ato`).value;
   const valorSinal = document.getElementById(`${sistema}-val-sinal`).innerText;
   const parcelasSinal = document.getElementById(`${sistema}-parc-sinal`).value;
+  
+  const txtParcelaSinal = document.getElementById(`${sistema}-de-parc-sinal`).innerText;
+  const valorParcelaSinal = txtParcelaSinal.replace('DE:', '').trim();
+
   const valorEntradaLiq = document.getElementById(`${sistema}-val-entrada-liquida`).innerText;
   const parcelasEntradaLiq = document.getElementById(`${sistema}-parc-liquida`).value;
 
+  const txtParcelaEntLiq = document.getElementById(`${sistema}-de-parc-liquida`).innerText;
+  const valorParcelaEntLiq = txtParcelaEntLiq.replace('DE:', '').trim();
+
   // 6. Pega o valor da 1ª parcela do financiamento na tabela
-  let valorParcela = "0,00";
+  let valorParcelaFinanciamento = "0,00";
   const tabela = document.getElementById("tabela-unificada-body");
   if (tabela && tabela.rows.length > 0) {
     if (sistema === 'sac') {
-      valorParcela = tabela.rows[0].cells[1].innerText.replace('R$', '').trim();
+      valorParcelaFinanciamento = tabela.rows[0].cells[1].innerText.replace('R$', '').trim();
     } else {
-      valorParcela = tabela.rows[0].cells[5].innerText.replace('R$', '').trim();
+      valorParcelaFinanciamento = tabela.rows[0].cells[5].innerText.replace('R$', '').trim();
     }
   }
 
-  // Define o título correto (SAC ou PRICE)
   const sistemaTexto = sistema === 'sac' ? 'SISTEMA SAC (PARCELAS DECRESCENTES)' : 'SISTEMA PRICE (PARCELAS FIXAS)';
 
-  // Monta o bloco final da entrada dinamicamente (só adiciona se o valor for > 0)
-  let blocoEntrada = `*Entrada:* R$ ${entradaBruta}\n`;
+  // 7. Monta o bloco de entrada e descontos na ORDEM CORRETA
+  let blocoEntrada = "";
   
-  // Verifica se tem Ato
-  const numAto = converterMoedaParaNumero(valorAto);
-  if (numAto > 0) blocoEntrada += `*Ato:* ${valorAto}\n`;
-  
-  // Verifica se tem Sinal
-  const numSinal = converterMoedaParaNumero(valorSinal);
-  if (numSinal > 0) blocoEntrada += `*Mais ${parcelasSinal}x de:* R$ ${valorSinal}\n`; // Ou poderia ser o valor da parcela do sinal
-  
-  // Verifica se tem Entrada Liq
-  const numEntLiq = converterMoedaParaNumero(valorEntradaLiq);
-  if (numEntLiq > 0) blocoEntrada += `*Mais ${parcelasEntradaLiq}x de:* R$ ${valorEntradaLiq}\n`;
+  // Adiciona FGTS se houver valor
+  const numFgts = converterMoedaParaNumero(fgtsGeral);
+  if (numFgts > 0) {
+    blocoEntrada += `*FGTS:* ${fgtsGeral}\n`;
+  }
 
-  // Remove a última quebra de linha sobrando
+  // Adiciona Bom Pagador se houver valor
+  const numBomPagador = converterMoedaParaNumero(bomPagador);
+  if (numBomPagador > 0) {
+    blocoEntrada += `*Bom pagador:* R$ ${bomPagador}\n`;
+  }
+
+  // Adiciona a Entrada Bruta
+  blocoEntrada += `*Entrada:* R$ ${entradaBruta}\n`;
+  
+  // Adiciona Ato
+  const numAto = converterMoedaParaNumero(valorAto);
+  if (numAto > 0) {
+    blocoEntrada += `*Ato:* ${valorAto}\n`;
+  }
+  
+  // Adiciona Sinal
+  const numSinal = converterMoedaParaNumero(valorSinal);
+  if (numSinal > 0) {
+    blocoEntrada += `*Mais ${parcelasSinal}x de:* ${valorParcelaSinal}\n`; 
+  }
+  
+  // Adiciona Entrada Líquida
+  const numEntLiq = converterMoedaParaNumero(valorEntradaLiq);
+  if (numEntLiq > 0) {
+    blocoEntrada += `*Mais ${parcelasEntradaLiq}x de:* ${valorParcelaEntLiq}\n`;
+  }
+
   blocoEntrada = blocoEntrada.trim();
 
-  // 7. Monta o texto final
+  // 8. Monta o texto final
   const texto = `
 *${residencial} - MRV*
 Simulação aproximada de valores
@@ -814,14 +839,12 @@ Previsão de entrega em ${entrega}
 
 *Financiamento:* R$ ${financiamento}
 *Quantidade de parcelas:* ${qtdParcelas}
-*Valor da 1ª parcela:* R$ ${valorParcela}
+*Valor da 1ª parcela:* R$ ${valorParcelaFinanciamento}
 
 ${blocoEntrada}
-*FGTS:* ${fgtsGeral}
-*Bom pagador:* R$ ${bomPagador}
   `.trim();
 
-  // 8. Copia para a área de transferência
+  // 9. Copia para a área de transferência
   navigator.clipboard.writeText(texto).then(() => {
     alert(`Simulação copiada com sucesso! Cole no WhatsApp do cliente.`);
   }).catch(err => {
@@ -829,4 +852,3 @@ ${blocoEntrada}
     alert("Erro ao copiar o texto. Verifique as permissões do navegador.");
   });
 }
-
