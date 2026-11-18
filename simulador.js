@@ -723,10 +723,8 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 
-// =================================================
-// 8. GERADOR DE TEXTO PARA WHATSAPP
-// =================================================
 function gerarTextoWhatsApp(sistema) {
+  // 1. Pega os dados digitados nos campos de texto da primeira linha
   const residencial = document.getElementById('whats-residencial')?.value || "Residencial";
   const aptoBloco = document.getElementById('whats-apto')?.value || "Apto/Bloco não informado";
   const entrega = document.getElementById('whats-entrega')?.value || "Data não informada";
@@ -734,8 +732,9 @@ function gerarTextoWhatsApp(sistema) {
   const nomeCorretor = document.getElementById('whats-nome-corretor')?.value || "Não informado";
   const creci = document.getElementById('whats-creci')?.value || "Não informado";
   const nomeCliente = document.getElementById('whats-nome-cliente')?.value || "Não informado";
-  const dataNasc = document.getElementById('whats-data-nasc')?.value;
   
+  // 2. Pega a data de nascimento do campo da TERCEIRA linha
+  const dataNasc = document.getElementById('sim-data-nasc')?.value;
   let dataNascFormatada = "Não informada";
   if (dataNasc) {
       const partes = dataNasc.split('-');
@@ -744,16 +743,27 @@ function gerarTextoWhatsApp(sistema) {
       }
   }
 
+  // 3. Dados gerais
   const renda = document.getElementById('sim-renda').value || "R$ 0,00";
-  const fgts = document.getElementById('sim-fgts').value || "R$ 0,00";
+  const fgtsGeral = document.getElementById('sim-fgts').value || "R$ 0,00";
   const dependentes = document.getElementById('sim-dependente').checked ? "Sim" : "Não";
   const valorImovel = document.getElementById('sim-val-imovel').value || "R$ 0,00";
   
+  // 4. Dados específicos do sistema (SAC ou PRICE)
   const financiamento = document.getElementById(`${sistema}-val-financiamento`).innerText;
   const entradaTotal = document.getElementById(`${sistema}-val-entrada-total`).innerText;
   const bomPagador = document.getElementById(`${sistema}-val-bom-pagador`).innerText;
   const qtdParcelas = document.getElementById('sim-prazo-finan').value;
   
+  // 5. Valores da Entrada para montar o texto final
+  const entradaBruta = document.getElementById(`${sistema}-val-entrada-bruta`).innerText;
+  const valorAto = document.getElementById(`${sistema}-input-ato`).value;
+  const valorSinal = document.getElementById(`${sistema}-val-sinal`).innerText;
+  const parcelasSinal = document.getElementById(`${sistema}-parc-sinal`).value;
+  const valorEntradaLiq = document.getElementById(`${sistema}-val-entrada-liquida`).innerText;
+  const parcelasEntradaLiq = document.getElementById(`${sistema}-parc-liquida`).value;
+
+  // 6. Pega o valor da 1ª parcela do financiamento na tabela
   let valorParcela = "0,00";
   const tabela = document.getElementById("tabela-unificada-body");
   if (tabela && tabela.rows.length > 0) {
@@ -764,8 +774,28 @@ function gerarTextoWhatsApp(sistema) {
     }
   }
 
-  const sistemaTexto = sistema === 'sac' ? 'SAC (TR)' : 'PRICE (TR)';
+  // Define o título correto (SAC ou PRICE)
+  const sistemaTexto = sistema === 'sac' ? 'SISTEMA SAC (PARCELAS DECRESCENTES)' : 'SISTEMA PRICE (PARCELAS FIXAS)';
 
+  // Monta o bloco final da entrada dinamicamente (só adiciona se o valor for > 0)
+  let blocoEntrada = `*Entrada:* R$ ${entradaBruta}\n`;
+  
+  // Verifica se tem Ato
+  const numAto = converterMoedaParaNumero(valorAto);
+  if (numAto > 0) blocoEntrada += `*Ato:* ${valorAto}\n`;
+  
+  // Verifica se tem Sinal
+  const numSinal = converterMoedaParaNumero(valorSinal);
+  if (numSinal > 0) blocoEntrada += `*Mais ${parcelasSinal}x de:* R$ ${valorSinal}\n`; // Ou poderia ser o valor da parcela do sinal
+  
+  // Verifica se tem Entrada Liq
+  const numEntLiq = converterMoedaParaNumero(valorEntradaLiq);
+  if (numEntLiq > 0) blocoEntrada += `*Mais ${parcelasEntradaLiq}x de:* R$ ${valorEntradaLiq}\n`;
+
+  // Remove a última quebra de linha sobrando
+  blocoEntrada = blocoEntrada.trim();
+
+  // 7. Monta o texto final
   const texto = `
 *${residencial} - MRV*
 Simulação aproximada de valores
@@ -778,7 +808,6 @@ Previsão de entrega em ${entrega}
 *Cliente:* ${nomeCliente}
 *Data nascimento:* ${dataNascFormatada}
 *Renda Bruta familiar:* ${renda}
-*FGTS:* ${fgts}
 *Dependentes:* ${dependentes}
 
 *Valor do imóvel:* ${valorImovel}
@@ -787,13 +816,14 @@ Previsão de entrega em ${entrega}
 *Quantidade de parcelas:* ${qtdParcelas}
 *Valor da 1ª parcela:* R$ ${valorParcela}
 
-*Entrada total:* R$ ${entradaTotal}
-*FGTS:* ${fgts}
+${blocoEntrada}
+*FGTS:* ${fgtsGeral}
 *Bom pagador:* R$ ${bomPagador}
   `.trim();
 
+  // 8. Copia para a área de transferência
   navigator.clipboard.writeText(texto).then(() => {
-    alert(`Simulação ${sistemaTexto} copiada com sucesso! Cole no WhatsApp do cliente.`);
+    alert(`Simulação copiada com sucesso! Cole no WhatsApp do cliente.`);
   }).catch(err => {
     console.error('Erro ao copiar: ', err);
     alert("Erro ao copiar o texto. Verifique as permissões do navegador.");
