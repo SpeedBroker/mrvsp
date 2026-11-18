@@ -302,6 +302,28 @@
            <div style="background-color: #f9f9f9; border: 1px solid #333; border-radius: 8px; padding: 12px; margin-bottom: 20px;">
                 
                 <div style="display: flex; flex-wrap: nowrap; gap: 10px; align-items: center; margin-bottom: 12px; font-size: 0.8rem; background: transparent; border: none; padding: 0; color: #000; justify-content: space-between;">
+
+                    <!-- Dados para o WhatsApp -->
+                    <div style="background-color: #e3f2fd; border: 1px solid #1a73e8; border-radius: 8px; padding: 10px; margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 0.8rem;">
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <label style="color: #1a73e8; font-weight: bold;">Residencial:</label>
+                            <input type="text" id="whats-residencial" placeholder="Ex: Vistabela" value="Vistabela" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 120px;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <label style="color: #1a73e8; font-weight: bold;">Apto/Bloco:</label>
+                            <input type="text" id="whats-apto" placeholder="Ex: 302 - bloco 7" value="302 – bloco 7" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 110px;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <label style="color: #1a73e8; font-weight: bold;">Entrega:</label>
+                            <input type="text" id="whats-entrega" placeholder="Ex: julho de 2028" value="julho de 2028" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 110px;">
+                        </div>
+                        <hr style="width: 100%; border: 0; border-top: 1px dashed #90caf9; margin: 5px 0;">
+                        <input type="text" id="whats-nome-corretor" placeholder="Nome do Corretor" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 130px;">
+                        <input type="text" id="whats-creci" placeholder="CRECI" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 80px;">
+                        <input type="text" id="whats-nome-cliente" placeholder="Nome do Cliente" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 130px;">
+                        <input type="date" id="whats-data-nasc" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px;">
+                    </div>
+
                     
                     <div style="display: flex; align-items: center; gap: 4px;">
                         <label style="white-space: nowrap; color: #000; font-weight: normal;">Cidade:</label>
@@ -495,6 +517,19 @@
 
             </div>
 
+
+
+            <!-- Botões de Copiar para WhatsApp -->
+            <div style="display: flex; justify-content: center; gap: 20px; margin-top: 15px; margin-bottom: 15px;">
+                <button onclick="gerarTextoWhatsApp('sac')" style="background-color: #25D366; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
+                    📱 Copiar Simulação SAC
+                </button>
+                <button onclick="gerarTextoWhatsApp('price')" style="background-color: #25D366; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
+                    📱 Copiar Simulação PRICE
+                </button>
+            </div>
+
+            
             <!-- Tabela Unificada com Cores Distintas para SAC e PRICE -->
             <div class="speedsim-coluna-tabela">
                 <div class="tabela-cabecalho-fixo-container">
