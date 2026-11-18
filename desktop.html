@@ -313,70 +313,71 @@
             
             <div style="background-color: #f9f9f9; border: 1px solid #333; border-radius: 8px; padding: 12px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;">
                 
-                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 0.8rem; border-bottom: 1px dashed #ccc; padding-bottom: 10px;">
-                    <div style="display: flex; align-items: center; gap: 4px;">
-                        <label style="color: #1a73e8; font-weight: bold;">Residencial:</label>
-                        <input type="text" id="whats-residencial" value="Vistabela" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 140px; font-weight: bold; color: #1a73e8;">
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 4px;">
-                        <label style="color: #1a73e8; font-weight: bold;">Apto/Bloco:</label>
-                        <input type="text" id="whats-apto" value="000 bloco 0" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 100px;">
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 4px;">
-                        <label style="color: #1a73e8; font-weight: bold;">Entrega:</label>
-                        <input type="text" id="whats-entrega" value="mês/ano" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 90px;">
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 4px;">
-                        <label style="color: #1a73e8; font-weight: bold;">Corretor:</label>
-                        <input type="text" id="whats-nome-corretor" placeholder="Nome" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 130px;">
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 4px;">
-                        <label style="color: #1a73e8; font-weight: bold;">CRECI:</label>
-                        <input type="text" id="whats-creci" placeholder="0000" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 70px;">
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 4px;">
-                        <label style="color: #1a73e8; font-weight: bold;">Cliente:</label>
-                        <input type="text" id="whats-nome-cliente" placeholder="Nome" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 130px;">
-                    </div>
-                    <input type="date" id="whats-data-nasc" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px;">
-                </div>
+<!-- LINHA 1: DADOS DO WHATSAPP -->
+<div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 0.8rem; border-bottom: 1px dashed #ccc; padding-bottom: 10px; justify-content: space-between;">
+    <div style="display: flex; align-items: center; gap: 4px; flex: 1;">
+        <label style="color: #1a73e8; font-weight: bold; white-space: nowrap;">Residencial:</label>
+        <input type="text" id="whats-residencial" value="Vistabela" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 100%; font-weight: bold; color: #1a73e8;">
+    </div>
+    <div style="display: flex; align-items: center; gap: 4px;">
+        <label style="color: #1a73e8; font-weight: bold; white-space: nowrap;">Apto/Bloco:</label>
+        <input type="text" id="whats-apto" value="000 bloco 0" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 120px;">
+    </div>
+    <div style="display: flex; align-items: center; gap: 4px;">
+        <label style="color: #1a73e8; font-weight: bold; white-space: nowrap;">Entrega:</label>
+        <input type="text" id="whats-entrega" value="mês/ano" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 110px;">
+    </div>
+    <div style="display: flex; align-items: center; gap: 4px; flex: 1;">
+        <label style="color: #1a73e8; font-weight: bold; white-space: nowrap;">Corretor:</label>
+        <input type="text" id="whats-nome-corretor" placeholder="Nome" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 100%;">
+    </div>
+    <div style="display: flex; align-items: center; gap: 4px;">
+        <label style="color: #1a73e8; font-weight: bold; white-space: nowrap;">CRECI:</label>
+        <input type="text" id="whats-creci" placeholder="0000" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 80px;">
+    </div>
+    <div style="display: flex; align-items: center; gap: 4px; flex: 1;">
+        <label style="color: #1a73e8; font-weight: bold; white-space: nowrap;">Cliente:</label>
+        <input type="text" id="whats-nome-cliente" placeholder="Nome" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 100%;">
+    </div>
+</div>
 
-                <div style="display: flex; flex-wrap: nowrap; gap: 10px; align-items: center; font-size: 0.8rem; color: #000; justify-content: space-between;">
-                    <div style="display: flex; align-items: center; gap: 4px;">
-                        <label style="white-space: nowrap; color: #000; font-weight: normal;">Cidade:</label>
-                        <select id="sim-cidade" onchange="atualizarTetoCidade(); simularFluxo()" style="width: 115px; font-size: 0.8rem; padding: 2px; border: 1px solid #ccc; border-radius: 4px; color: #000; background: #fff;">
-                            <option value="">Selecione...</option>
-                            <option value="SP">São Paulo - SP</option>
-                            <option value="CAMP">Campinas - SP</option>
-                            <option value="COT">Cotia - SP</option>
-                        </select>
-                    </div>
+<!-- LINHA 2: INPUTS DO SIMULADOR (MANTIDA COMO ESTAVA) -->
+<div style="display: flex; flex-wrap: nowrap; gap: 10px; align-items: center; font-size: 0.8rem; color: #000; justify-content: space-between;">
+    <div style="display: flex; align-items: center; gap: 4px;">
+        <label style="white-space: nowrap; color: #000; font-weight: normal;">Cidade:</label>
+        <select id="sim-cidade" onchange="atualizarTetoCidade(); simularFluxo()" style="width: 115px; font-size: 0.8rem; padding: 2px; border: 1px solid #ccc; border-radius: 4px; color: #000; background: #fff;">
+            <option value="">Selecione...</option>
+            <option value="SP">São Paulo - SP</option>
+            <option value="CAMP">Campinas - SP</option>
+            <option value="COT">Cotia - SP</option>
+        </select>
+    </div>
 
-                    <div style="display: flex; align-items: center; gap: 4px;">
-                        <label style="white-space: nowrap; color: #000; font-weight: normal;"><input type="radio" name="base-financiamento" value="imovel" checked onchange="atualizarTetoCidade(); simularFluxo()"> Imóvel:</label>
-                        <input type="text" id="sim-val-imovel" value="" placeholder="R$ 0,00" oninput="mascararMoeda(this)" onblur="verificarTetoImovel(); simularFluxo()" style="width: 115px; text-align: right; font-size: 0.8rem; color: #000; background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 2px 4px;">
-                    </div>
+    <div style="display: flex; align-items: center; gap: 4px;">
+        <label style="white-space: nowrap; color: #000; font-weight: normal;"><input type="radio" name="base-financiamento" value="imovel" checked onchange="atualizarTetoCidade(); simularFluxo()"> Imóvel:</label>
+        <input type="text" id="sim-val-imovel" value="" placeholder="R$ 0,00" oninput="mascararMoeda(this)" onblur="verificarTetoImovel(); simularFluxo()" style="width: 115px; text-align: right; font-size: 0.8rem; color: #000; background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 2px 4px;">
+    </div>
 
-                    <div style="display: flex; align-items: center; gap: 4px;">
-                        <label style="white-space: nowrap; color: #000; font-weight: normal;"><input type="radio" name="base-financiamento" value="avaliacao" onchange="atualizarTetoCidade(); simularFluxo()"> Avaliação:</label>
-                        <input type="text" id="sim-val-avaliacao" value="" placeholder="R$ 0,00" oninput="mascararMoeda(this)" onblur="simularFluxo()" style="width: 115px; text-align: right; font-size: 0.8rem; color: #000; background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 2px 4px;">
-                    </div>
+    <div style="display: flex; align-items: center; gap: 4px;">
+        <label style="white-space: nowrap; color: #000; font-weight: normal;"><input type="radio" name="base-financiamento" value="avaliacao" onchange="atualizarTetoCidade(); simularFluxo()"> Avaliação:</label>
+        <input type="text" id="sim-val-avaliacao" value="" placeholder="R$ 0,00" oninput="mascararMoeda(this)" onblur="simularFluxo()" style="width: 115px; text-align: right; font-size: 0.8rem; color: #000; background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 2px 4px;">
+    </div>
 
-                    <div style="display: flex; align-items: center; gap: 4px;">
-                        <label style="color: #000; font-weight: normal; white-space: nowrap;">Bom Pagador:</label>
-                        <input type="text" id="sim-bom-pagador" value="" placeholder="R$ 0,00" oninput="mascararMoeda(this)" onblur="simularFluxo()" style="width: 115px; text-align: right; font-size: 0.8rem; color: #000; background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 2px 4px;">
-                    </div>
+    <div style="display: flex; align-items: center; gap: 4px;">
+        <label style="color: #000; font-weight: normal; white-space: nowrap;">Bom Pagador:</label>
+        <input type="text" id="sim-bom-pagador" value="" placeholder="R$ 0,00" oninput="mascararMoeda(this)" onblur="simularFluxo()" style="width: 115px; text-align: right; font-size: 0.8rem; color: #000; background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 2px 4px;">
+    </div>
 
-                    <div style="display: flex; align-items: center; gap: 4px;">
-                        <label style="white-space: nowrap; color: #000; font-weight: normal;">FGTS:</label>
-                        <input type="text" id="sim-fgts" value="" placeholder="R$ 0,00" oninput="mascararMoeda(this)" onblur="simularFluxo()" style="width: 115px; text-align: right; font-size: 0.8rem; color: #000; background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 2px 4px;">
-                    </div>
+    <div style="display: flex; align-items: center; gap: 4px;">
+        <label style="white-space: nowrap; color: #000; font-weight: normal;">FGTS:</label>
+        <input type="text" id="sim-fgts" value="" placeholder="R$ 0,00" oninput="mascararMoeda(this)" onblur="simularFluxo()" style="width: 115px; text-align: right; font-size: 0.8rem; color: #000; background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 2px 4px;">
+    </div>
 
-                    <div style="display: flex; align-items: center; gap: 4px;">
-                        <label style="white-space: nowrap; color: #000; font-weight: normal;">Renda:</label>
-                        <input type="text" id="sim-renda" value="" placeholder="R$ 0,00" oninput="mascararMoeda(this)" onblur="simularFluxo()" style="width: 115px; text-align: right; font-size: 0.8rem; color: #000; background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 2px 4px;">
-                    </div>
-                </div>
+    <div style="display: flex; align-items: center; gap: 4px;">
+        <label style="white-space: nowrap; color: #000; font-weight: normal;">Renda:</label>
+        <input type="text" id="sim-renda" value="" placeholder="R$ 0,00" oninput="mascararMoeda(this)" onblur="simularFluxo()" style="width: 115px; text-align: right; font-size: 0.8rem; color: #000; background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 2px 4px;">
+    </div>
+</div>
 
                 <div style="display: flex; flex-wrap: nowrap; gap: 12px; align-items: center; font-size: 0.8rem; border-top: 1px dashed #ddd; padding-top: 10px; color: #000;">
                     <div style="display: flex; align-items: center; gap: 4px;">
