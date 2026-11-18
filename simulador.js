@@ -787,19 +787,23 @@ function gerarTextoWhatsApp(sistema) {
   let dataNascFormatada = "Não informada";
   if (dataNasc) {
       const partes = dataNasc.split('-');
-      dataNascFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+      if (partes.length === 3) {
+          dataNascFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+      }
   }
 
-  const renda = document.getElementById('sim-renda').value;
-  const fgts = document.getElementById('sim-fgts').value;
+  const renda = document.getElementById('sim-renda').value || "R$ 0,00";
+  const fgts = document.getElementById('sim-fgts').value || "R$ 0,00";
   const dependentes = document.getElementById('sim-dependente').checked ? "Sim" : "Não";
-  const valorImovel = document.getElementById('sim-val-imovel').value;
+  const valorImovel = document.getElementById('sim-val-imovel').value || "R$ 0,00";
   
+  // Pega os valores que já estão calculados nas caixas
   const financiamento = document.getElementById(`${sistema}-val-financiamento`).innerText;
   const entradaTotal = document.getElementById(`${sistema}-val-entrada-total`).innerText;
   const bomPagador = document.getElementById(`${sistema}-val-bom-pagador`).innerText;
   const qtdParcelas = document.getElementById('sim-prazo-finan').value;
   
+  // Pega o valor da 1ª parcela direto da tabela (linha 0, coluna específica do sistema)
   let valorParcela = "0,00";
   const tabela = document.getElementById("tabela-unificada-body");
   if (tabela && tabela.rows.length > 0) {
