@@ -768,3 +768,80 @@ document.addEventListener("DOMContentLoaded", function() {
 
   simularFluxo();
 });
+
+
+
+// =================================================
+// GERADOR DE TEXTO PARA WHATSAPP
+// =================================================
+function gerarTextoWhatsApp(sistema) {
+  const residencial = document.getElementById('whats-residencial')?.value || "Residencial";
+  const aptoBloco = document.getElementById('whats-apto')?.value || "Apto/Bloco não informado";
+  const entrega = document.getElementById('whats-entrega')?.value || "Data não informada";
+  
+  const nomeCorretor = document.getElementById('whats-nome-corretor')?.value || "Não informado";
+  const creci = document.getElementById('whats-creci')?.value || "Não informado";
+  const nomeCliente = document.getElementById('whats-nome-cliente')?.value || "Não informado";
+  const dataNasc = document.getElementById('whats-data-nasc')?.value;
+  
+  let dataNascFormatada = "Não informada";
+  if (dataNasc) {
+      const partes = dataNasc.split('-');
+      dataNascFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+  }
+
+  const renda = document.getElementById('sim-renda').value;
+  const fgts = document.getElementById('sim-fgts').value;
+  const dependentes = document.getElementById('sim-dependente').checked ? "Sim" : "Não";
+  const valorImovel = document.getElementById('sim-val-imovel').value;
+  
+  const financiamento = document.getElementById(`${sistema}-val-financiamento`).innerText;
+  const entradaTotal = document.getElementById(`${sistema}-val-entrada-total`).innerText;
+  const bomPagador = document.getElementById(`${sistema}-val-bom-pagador`).innerText;
+  const qtdParcelas = document.getElementById('sim-prazo-finan').value;
+  
+  let valorParcela = "0,00";
+  const tabela = document.getElementById("tabela-unificada-body");
+  if (tabela && tabela.rows.length > 0) {
+    if (sistema === 'sac') {
+      valorParcela = tabela.rows[0].cells[1].innerText.replace('R$', '').trim();
+    } else {
+      valorParcela = tabela.rows[0].cells[5].innerText.replace('R$', '').trim();
+    }
+  }
+
+  const sistemaTexto = sistema === 'sac' ? 'SAC (TR)' : 'PRICE (TR)';
+
+  const texto = `
+*${residencial} - MRV*
+Simulação aproximada de valores
+*${sistemaTexto}*
+${aptoBloco}
+Previsão de entrega em ${entrega}
+
+*Data da simulação:* ${new Date().toLocaleDateString('pt-BR')}
+*Corretor:* ${nomeCorretor} - CRECI ${creci}
+*Cliente:* ${nomeCliente}
+*Data nascimento:* ${dataNascFormatada}
+*Renda Bruta familiar:* ${renda}
+*FGTS:* ${fgts}
+*Dependentes:* ${dependentes}
+
+*Valor do imóvel:* ${valorImovel}
+
+*Financiamento:* R$ ${financiamento}
+*Quantidade de parcelas:* ${qtdParcelas}
+*Valor da 1ª parcela:* R$ ${valorParcela}
+
+*Entrada total:* R$ ${entradaTotal}
+*FGTS:* ${fgts}
+*Bom pagador:* R$ ${bomPagador}
+  `.trim();
+
+  navigator.clipboard.writeText(texto).then(() => {
+    alert(`Simulação ${sistemaTexto} copiada com sucesso! Cole no WhatsApp do cliente.`);
+  }).catch(err => {
+    console.error('Erro ao copiar: ', err);
+    alert("Erro ao copiar o texto. Verifique as permissões do navegador.");
+  });
+}
