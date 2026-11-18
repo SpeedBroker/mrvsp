@@ -140,6 +140,24 @@
         .btn-fechar-speedsim:hover {
             background-color: #e0a60f !important;
         }
+        
+        .btn-copiar-whats {
+            background-color: #25D366;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.7rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: background-color 0.2s;
+        }
+        .btn-copiar-whats:hover {
+            background-color: #128C7E;
+        }
     </style>
 </head>
 <body>
@@ -190,9 +208,8 @@
     </div>
 
 <!-- ========================================================== -->
-<!-- BLOCO DO MODAL: SPEEDSIM (CABEÇALHO UNIFICADO COM MÉTRICAS) -->
+<!-- BLOCO DO MODAL: SPEEDSIM -->
 <!-- ========================================================== -->
-<!-- ESTILOS DO SPEEDSIM -->
 <style>
     :root {
         --mrv-verde: #004d24;
@@ -235,7 +252,6 @@
         z-index: 5;
     }
 
-    /* Cores Temáticas MRV para Blocos SAC (Verde) e PRICE (Amarelo) */
     .th-bloco-sac {
         background-color: #d1e7dd !important;
         color: #0f5132;
@@ -298,33 +314,41 @@
         </h2>
        
         <div class="modal-body">
-           <!-- Caixa de inputs superior com contorno padrão igual às caixas SAC/PRICE -->
-           <div style="background-color: #f9f9f9; border: 1px solid #333; border-radius: 8px; padding: 12px; margin-bottom: 20px;">
+            
+            <!-- TOPO: DADOS DO WHATSAPP E INPUTS GERAIS -->
+            <div style="background-color: #f9f9f9; border: 1px solid #333; border-radius: 8px; padding: 12px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;">
                 
-                <div style="display: flex; flex-wrap: nowrap; gap: 10px; align-items: center; margin-bottom: 12px; font-size: 0.8rem; background: transparent; border: none; padding: 0; color: #000; justify-content: space-between;">
-
-                    <!-- Dados para o WhatsApp -->
-                    <div style="background-color: #e3f2fd; border: 1px solid #1a73e8; border-radius: 8px; padding: 10px; margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 0.8rem;">
-                        <div style="display: flex; align-items: center; gap: 4px;">
-                            <label style="color: #1a73e8; font-weight: bold;">Residencial:</label>
-                            <input type="text" id="whats-residencial" placeholder="Ex: Vistabela" value="Vistabela" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 120px;">
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 4px;">
-                            <label style="color: #1a73e8; font-weight: bold;">Apto/Bloco:</label>
-                            <input type="text" id="whats-apto" placeholder="Ex: 302 - bloco 7" value="302 – bloco 7" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 110px;">
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 4px;">
-                            <label style="color: #1a73e8; font-weight: bold;">Entrega:</label>
-                            <input type="text" id="whats-entrega" placeholder="Ex: julho de 2028" value="julho de 2028" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 110px;">
-                        </div>
-                        <hr style="width: 100%; border: 0; border-top: 1px dashed #90caf9; margin: 5px 0;">
-                        <input type="text" id="whats-nome-corretor" placeholder="Nome do Corretor" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 130px;">
-                        <input type="text" id="whats-creci" placeholder="CRECI" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 80px;">
-                        <input type="text" id="whats-nome-cliente" placeholder="Nome do Cliente" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 130px;">
-                        <input type="date" id="whats-data-nasc" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px;">
+                <!-- LINHA 1: DADOS DO WHATSAPP -->
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 0.8rem; border-bottom: 1px dashed #ccc; padding-bottom: 10px;">
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <label style="color: #1a73e8; font-weight: bold;">Residencial:</label>
+                        <input type="text" id="whats-residencial" value="Vistabela" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 140px; font-weight: bold; color: #1a73e8;">
                     </div>
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <label style="color: #1a73e8; font-weight: bold;">Apto/Bloco:</label>
+                        <input type="text" id="whats-apto" value="000 bloco 0" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 100px;">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <label style="color: #1a73e8; font-weight: bold;">Entrega:</label>
+                        <input type="text" id="whats-entrega" value="mês/ano" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 90px;">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <label style="color: #1a73e8; font-weight: bold;">Corretor:</label>
+                        <input type="text" id="whats-nome-corretor" placeholder="Nome" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 130px;">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <label style="color: #1a73e8; font-weight: bold;">CRECI:</label>
+                        <input type="text" id="whats-creci" placeholder="0000" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 70px;">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <label style="color: #1a73e8; font-weight: bold;">Cliente:</label>
+                        <input type="text" id="whats-nome-cliente" placeholder="Nome" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px; width: 130px;">
+                    </div>
+                    <input type="date" id="whats-data-nasc" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px;">
+                </div>
 
-                    
+                <!-- LINHA 2: INPUTS DO SIMULADOR -->
+                <div style="display: flex; flex-wrap: nowrap; gap: 10px; align-items: center; font-size: 0.8rem; color: #000; justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: 4px;">
                         <label style="white-space: nowrap; color: #000; font-weight: normal;">Cidade:</label>
                         <select id="sim-cidade" onchange="atualizarTetoCidade(); simularFluxo()" style="width: 115px; font-size: 0.8rem; padding: 2px; border: 1px solid #ccc; border-radius: 4px; color: #000; background: #fff;">
@@ -361,6 +385,7 @@
                     </div>
                 </div>
 
+                <!-- LINHA 3: PARÂMETROS EXTRA -->
                 <div style="display: flex; flex-wrap: nowrap; gap: 12px; align-items: center; font-size: 0.8rem; border-top: 1px dashed #ddd; padding-top: 10px; color: #000;">
                     
                     <div style="display: flex; align-items: center; gap: 4px;">
@@ -389,35 +414,32 @@
                 </div>
             </div>
 
+            <!-- CAIXAS SAC E PRICE -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
 
+                <!-- SAC -->
                 <div style="border: 1px solid #333; border-radius: 8px; padding: 12px; background: #fff;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                         <strong style="color: var(--mrv-verde, #004d24); font-size: 0.95rem;">
-                            SISTEMA SAC (PARCELAS DECRESCENTES) <span id="sac-detalhe-titulo" style="font-size: 0.75rem; font-weight: normal; color: #555;">(0,0% a 8,16% a.a.)</span>
+                            SISTEMA SAC <span id="sac-detalhe-titulo" style="font-size: 0.75rem; font-weight: normal; color: #555;">(0,0% a 8,16% a.a.)</span>
                         </strong>
+                        <button class="btn-copiar-whats" onclick="gerarTextoWhatsApp('sac')">📱 Copiar Simulação SAC</button>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1.1fr auto 1.5fr; gap: 12px; font-size: 0.8rem; align-items: center;">
                         <div style="display: grid; grid-template-columns: 155px 1fr; row-gap: 8px; align-items: center;">
                             <span>VALOR DO IMÓVEL:</span>
                             <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="sac-val-imovel">0,00</span></strong>
-
                             <span>SUBSÍDIO:</span>
                             <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="sac-val-subsidio">0,00</span></strong>
-
                             <span>VLR. IMÓVEL LIQUIDO:</span>
                             <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="sac-val-imovel-liquido">0,00</span></strong>
-
                             <span>FINANCIAMENTO:</span>
                             <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="sac-val-financiamento">0,00</span></strong>
-
                             <span>ENTRADA TOTAL:</span>
                             <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="sac-val-entrada-total">0,00</span></strong>
-
                             <span>FGTS:</span>
                             <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="sac-val-fgts">0,00</span></strong>
-
                             <span>BOM PAGADOR:</span>
                             <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="sac-val-bom-pagador">0,00</span></strong>
                         </div>
@@ -440,7 +462,8 @@
                             <div style="display: flex; align-items: center; gap: 4px;">
                                 <strong style="display: flex; justify-content: space-between; width: 95px; text-align: right;"><span>R$</span><span id="sac-val-sinal">0,00</span></strong>
                                 <span style="font-size: 0.7rem;">EM</span>
-                                <input type="number" id="sac-parc-sinal" value="5" min="1" max="4" oninput="if(parseInt(this.value)>5)this.value=5; simularFluxo()" style="width: 30px; text-align: center; font-size: 0.75rem;">
+                                <input type="number" id="sac-parc-sinal" value="5" min="1" max="5" oninput="if(parseInt(this.value)>5)this.value=5; simularFluxo()" style="width: 30px; text-align: center; font-size: 0.75rem;">
+                                <span id="sac-de-parc-sinal" style="font-size: 0.75rem; font-weight: bold; color: #333; white-space: nowrap;">DE: R$ 0,00</span>
                             </div>
 
                             <span>ENTRADA LIQ.:</span>
@@ -448,176 +471,34 @@
                                 <strong style="display: flex; justify-content: space-between; width: 95px; text-align: right;"><span>R$</span><span id="sac-val-entrada-liquida">0,00</span></strong>
                                 <span style="font-size: 0.7rem;">EM</span>
                                 <input type="number" id="sac-parc-liquida" value="30" style="width: 30px; text-align: center; font-size: 0.75rem;" oninput="simularFluxo()">
+                                <span id="sac-de-parc-liquida" style="font-size: 0.75rem; font-weight: bold; color: #333; white-space: nowrap;">DE: R$ 0,00</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- PRICE -->
                 <div style="border: 1px solid #333; border-radius: 8px; padding: 12px; background: #fff;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                         <strong style="color: var(--mrv-verde, #004d24); font-size: 0.95rem;">
-                            SISTEMA PRICE (PARCELAS FIXAS) <span id="price-detalhe-titulo" style="font-size: 0.75rem; font-weight: normal; color: #555;">(0,0% a 8,16% a.a.)</span>
+                            SISTEMA PRICE <span id="price-detalhe-titulo" style="font-size: 0.75rem; font-weight: normal; color: #555;">(0,0% a 8,16% a.a.)</span>
                         </strong>
+                        <button class="btn-copiar-whats" onclick="gerarTextoWhatsApp('price')">📱 Copiar Simulação PRICE</button>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1.1fr auto 1.5fr; gap: 12px; font-size: 0.8rem; align-items: center;">
                         <div style="display: grid; grid-template-columns: 155px 1fr; row-gap: 8px; align-items: center;">
                             <span>VALOR DO IMÓVEL:</span>
                             <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="price-val-imovel">0,00</span></strong>
-
                             <span>SUBSÍDIO:</span>
                             <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="price-val-subsidio">0,00</span></strong>
-
                             <span>VLR. IMÓVEL LIQUIDO:</span>
                             <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="price-val-imovel-liquido">0,00</span></strong>
-
                             <span>FINANCIAMENTO:</span>
                             <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="price-val-financiamento">0,00</span></strong>
-
                             <span>ENTRADA TOTAL:</span>
                             <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="price-val-entrada-total">0,00</span></strong>
-
                             <span>FGTS:</span>
                             <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="price-val-fgts">0,00</span></strong>
-
                             <span>BOM PAGADOR:</span>
-                            <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="price-val-bom-pagador">0,00</span></strong>
-                        </div>
-
-                        <div style="border-left: 1px solid #333; height: 100%;"></div>
-
-                        <div style="display: grid; grid-template-columns: 130px 1fr; row-gap: 8px; column-gap: 8px; align-items: center;">
-                            <span>ENTRADA BRUTA:</span>
-                            <strong style="display: flex; justify-content: space-between; width: 95px; text-align: right;"><span>R$</span><span id="price-val-entrada-bruta">0,00</span></strong>        
-                            
-                            <span>ATO:</span>
-                            <div style="display: flex; align-items: center; gap: 4px;">
-                                <input type="text" id="price-input-ato" value="R$ 0,00" placeholder="R$ 0,00" oninput="mascararMoeda(this)" onblur="simularFluxo()" style="width: 95px; text-align: right; font-size: 0.8rem; border: 1px solid #ccc; border-radius: 4px; padding: 2px 4px; background: #fff;">
-                                <span>=</span>
-                                <input type="text" id="price-pct-ato" value="0.0%" readonly style="width: 40px; text-align: center; font-size: 0.8rem; border: none; background: transparent; font-weight: bold;">
-                                <span style="font-size: 0.65rem; color: #555; white-space: nowrap;">DO TOTAL</span>
-                            </div>
-
-                            <span>SINAL:</span>
-                            <div style="display: flex; align-items: center; gap: 4px;">
-                                <strong style="display: flex; justify-content: space-between; width: 95px; text-align: right;"><span>R$</span><span id="price-val-sinal">0,00</span></strong>
-                                <span style="font-size: 0.7rem;">EM</span>
-                                <input type="number" id="price-parc-sinal" value="5" min="1" max="5" oninput="if(parseInt(this.value)>5)this.value=5; simularFluxo()" style="width: 30px; text-align: center; font-size: 0.75rem;">
-                            </div>
-
-                            <span>ENTRADA LIQ.:</span>
-                            <div style="display: flex; align-items: center; gap: 4px;">
-                                <strong style="display: flex; justify-content: space-between; width: 95px; text-align: right;"><span>R$</span><span id="price-val-entrada-liquida">0,00</span></strong>
-                                <span style="font-size: 0.7rem;">EM</span>
-                                <input type="number" id="price-parc-liquida" value="30" style="width: 30px; text-align: center; font-size: 0.75rem;" oninput="simularFluxo()">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-
-
-            <!-- Botões de Copiar para WhatsApp -->
-            <div style="display: flex; justify-content: center; gap: 20px; margin-top: 15px; margin-bottom: 15px;">
-                <button onclick="gerarTextoWhatsApp('sac')" style="background-color: #25D366; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
-                    📱 Copiar Simulação SAC
-                </button>
-                <button onclick="gerarTextoWhatsApp('price')" style="background-color: #25D366; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
-                    📱 Copiar Simulação PRICE
-                </button>
-            </div>
-
-            
-            <!-- Tabela Unificada com Cores Distintas para SAC e PRICE -->
-            <div class="speedsim-coluna-tabela">
-                <div class="tabela-cabecalho-fixo-container">
-                    <table id="tabela-cabecalho-fixo">
-                        <colgroup>
-                            <col class="col-mes">
-                            <col class="col-sac-1">
-                            <col class="col-sac-2">
-                            <col class="col-sac-3">
-                            <col class="col-sac-4">
-                            <col class="col-price-1">
-                            <col class="col-price-2">
-                            <col class="col-price-3">
-                            <col class="col-price-4">
-                        </colgroup>
-                        <thead>
-                            <tr>
-                                <th rowspan="2">Mês</th>
-                                <th colspan="4" class="th-bloco-sac">
-                                    <div class="th-sistema-titulo" style="display: flex; justify-content: center; align-items: center; gap: 10px;">
-                                        <span>SISTEMA SAC</span>
-                                        <span style="font-weight: normal; font-size: 0.75rem; background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px;">Total: <strong id="res-sac-total-parcela">R$ 0,00</strong></span>
-                                    </div>
-                                </th>
-                                <th colspan="4" class="th-bloco-price">
-                                    <div class="th-sistema-titulo" style="display: flex; justify-content: center; align-items: center; gap: 10px;">
-                                        <span>SISTEMA PRICE</span>
-                                        <span style="font-weight: normal; font-size: 0.75rem; background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px;">Total: <strong id="res-price-total-parcela">R$ 0,00</strong></span>
-                                    </div>
-                                </th>
-                            </tr>
-                            <tr>
-                                <th class="sac-sub col-sac-1">Parcela</th>
-                                <th class="sac-sub col-sac-2">Amortização</th>
-                                <th class="sac-sub col-sac-3">Juros</th>
-                                <th class="sac-sub col-sac-4">Saldo Dev.</th>
-                                <th class="price-sub col-price-1">Parcela</th>
-                                <th class="price-sub col-price-2">Amortização</th>
-                                <th class="price-sub col-price-3">Juros</th>
-                                <th class="price-sub col-price-4">Saldo Dev.</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
-
-                <div class="speedsim-scroll-wrapper">
-                    <table id="tabela-comparativa">
-                        <colgroup>
-                            <col class="col-mes">
-                            <col class="col-sac-1">
-                            <col class="col-sac-2">
-                            <col class="col-sac-3">
-                            <col class="col-sac-4">
-                            <col class="col-price-1">
-                            <col class="col-price-2">
-                            <col class="col-price-3">
-                            <col class="col-price-4">
-                        </colgroup>
-                        <tbody id="tabela-unificada-body">
-                            <tr><td colspan="9" class="vazio-msg">Digite o valor do Imóvel e a renda para simular...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-        </div>
-
-    </div>
-</div>
-<!-- ========================================================== -->
-    <script src="mapa-SP.js" defer></script>
-    <script src="desktop.js" defer></script>
-    <script src="simulador.js" defer></script>
-
-    <script>
-        window.addEventListener('load', () => {
-            if (typeof iniciarApp === 'function') {
-                iniciarApp();
-            } else {
-                setTimeout(() => {
-                    if (typeof iniciarApp === 'function') {
-                        iniciarApp();
-                    } else {
-                        alert("Não foi possível iniciar o aplicativo.");
-                    }
-                }, 500);
-            }
-        });
-    </script>
-</body>
-</html>
+                            <strong style="display: flex; justify-content: space-between; text-align: right;"><span>R$</span><span id="price-val-bom-pagador">0,00
