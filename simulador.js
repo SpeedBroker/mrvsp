@@ -284,44 +284,46 @@ function atualizarCardFinanciamento(sistema, dados) {
   setElText(`${sistema}-val-recursos`, recPropriosCalculado);
   setElText(`${sistema}-val-saldo-rec`, saldoRecursosCalculado);
 
-  const inputAto = document.getElementById(`${sistema}-val-ato`) || document.getElementById(`${sistema}-input-ato`);
+  const inputAto = document.getElementById(`${sistema}-input-ato`);
   const pctAto = document.getElementById(`${sistema}-pct-ato`);
   const spanSinal = document.getElementById(`${sistema}-val-sinal`);
   const inputQtdParcSinal = document.getElementById(`${sistema}-parc-sinal`);
-  
-  let spanDeParcSinal = document.getElementById(`${sistema}-de-parc-sinal`);
-  if (inputQtdParcSinal && !spanDeParcSinal) {
-    spanDeParcSinal = document.createElement("span");
-    spanDeParcSinal.id = `${sistema}-de-parc-sinal`;
-    spanDeParcSinal.style.cssText = "font-size: 0.75rem; font-weight: bold; color: #333; margin-left: 4px; white-space: nowrap;";
-    inputQtdParcSinal.parentNode.appendChild(spanDeParcSinal);
-  }
-
+  const spanDeParcSinal = document.getElementById(`${sistema}-de-parc-sinal`);
   const spanEntradaLiq = document.getElementById(`${sistema}-val-entrada-liquida`);
   const inputQtdParcLiq = document.getElementById(`${sistema}-parc-liquida`);
-
-  let spanDeParcLiq = document.getElementById(`${sistema}-de-parc-liquida`);
-  if (inputQtdParcLiq && !spanDeParcLiq) {
-    spanDeParcLiq = document.createElement("span");
-    spanDeParcLiq.id = `${sistema}-de-parc-liquida`;
-    spanDeParcLiq.style.cssText = "font-size: 0.75rem; font-weight: bold; color: #333; margin-left: 4px; white-space: nowrap;";
-    inputQtdParcLiq.parentNode.appendChild(spanDeParcLiq);
-  }
+  const spanDeParcLiq = document.getElementById(`${sistema}-de-parc-liquida`);
 
   if (inputAto) {
     let valorAtualAto = converterMoedaParaNumero(inputAto.value);
 
-    // Se o usuário não mexeu no campo ou o valor está zerado/vazio, assume o mínimo de 0,2% do imóvel automaticamente
-    if (!inputAto.dataset.usuarioEditou || valendoZeroOuVazio(inputAto.value) || valorAtualAto < valorMinimoAto) {
+    // Lógica inteligente: se o usuário apagou tudo, coloca o mínimo (0,2%)
+    if (valendoZeroOuVazio(inputAto.value)) {
       valorAtualAto = valorMinimoAto;
       inputAto.value = formatarMoeda(valorAtualAto);
+    }
+
+    // Se o valor digitado for menor que o mínimo, não bloqueia a digitação, mas avisa
+    if (valorAtualAto < valorMinimoAto) {
+      valorAtualAto = valorMinimoAto;
+    }
+
+    // Se o valor digitado for maior que a entrada bruta, limita ao máximo
+    if (valorAtualAto > entradaBrutaCalculada) {
+      valorAtualAto = entradaBrutaCalculada;
     }
 
     let percentualAto = valorImovel > 0 ? (valorAtualAto / valorImovel) * 100 : 0;
     if (pctAto) pctAto.value = percentualAto.toFixed(1).replace(".", ",") + "%";
 
-    let calculoBrutoSinal = (valorImovel * 0.015) - valorAtualAto;
-    let valorSinalCalculado = calculoBrutoSinal > 0 ? calculoBrutoSinal : 0;
+    // REGRA DE NEGÓCIO DO SINAL
+    const limiteSinal = valorImovel * 0.015;
+    let valorSinalCalculado = 0;
+    
+    if (valorAtualAto > limiteSinal) {
+      valorSinalCalculado = 0; // Zera o sinal se o Ato for maior que 1,5%
+    } else {
+      valorSinalCalculado = limiteSinal - valorAtualAto;
+    }
 
     if (spanSinal) {
       spanSinal.innerText = formatarMoeda(valorSinalCalculado).replace('R$', '').trim();
@@ -335,6 +337,7 @@ function atualizarCardFinanciamento(sistema, dados) {
       spanDeParcSinal.innerText = `DE: ${formatarMoeda(valorParcelaSinal)}`;
     }
 
+    // ENTRADA LIQUIDA
     let calculoBrutoEntLiq = entradaBrutaCalculada - valorAtualAto - valorSinalCalculado;
     let valorEntradaLiqCalculado = calculoBrutoEntLiq > 0 ? calculoBrutoEntLiq : 0;
 
@@ -349,33 +352,24 @@ function atualizarCardFinanciamento(sistema, dados) {
       spanDeParcLiq.innerText = `DE: ${formatarMoeda(valorParcelaLiq)}`;
     }
 
+    // Configura o evento de validação apenas quando o usuário sair do campo
     if (!inputAto.dataset.validado) {
       inputAto.dataset.validado = "true";
-      
-      // Valida o teto mínimo de 0.2% apenas ao sair do campo (blur)
       inputAto.addEventListener('blur', () => {
         let val = converterMoedaParaNumero(inputAto.value);
         if (val > 0 && val < valorMinimoAto) {
           alert("O valor do Ato não pode ser inferior a 0,2% do valor do imóvel. O valor foi ajustado para o mínimo de 0,2%.");
           inputAto.value = formatarMoeda(valorMinimoAto);
+        } else if (val > entradaBrutaCalculada) {
+          alert("O valor do Ato não pode ser maior que a Entrada Bruta. O valor foi ajustado para o máximo.");
+          inputAto.value = formatarMoeda(entradaBrutaCalculada);
         }
         simularFluxo();
       });
-
-      // Marca que o usuário editou para o script respeitar o valor customizado dele
+      
       inputAto.addEventListener('input', () => {
-        inputAto.dataset.usuarioEditou = "true";
         simularFluxo();
       });
-    }
-
-    if (inputQtdParcSinal && !inputQtdParcSinal.dataset.escutando) {
-      inputQtdParcSinal.dataset.escutando = "true";
-      inputQtdParcSinal.addEventListener('input', () => simularFluxo());
-    }
-    if (inputQtdParcLiq && !inputQtdParcLiq.dataset.escutando) {
-      inputQtdParcLiq.dataset.escutando = "true";
-      inputQtdParcLiq.addEventListener('input', () => simularFluxo());
     }
   }
 }
