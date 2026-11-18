@@ -10,7 +10,7 @@
 
 const tabelaSubsidio = [
   { rendaMax: 1000.00, valor: 55000.00 },
-  { rendaMax: 1200.00, valor: 55000.00 },ff
+  { rendaMax: 1200.00, valor: 55000.00 },
   { rendaMax: 1400.00, valor: 55000.00 },
   { rendaMax: 1600.00, valor: 55000.00 },
   { rendaMax: 1800.00, valor: 55000.00 },
@@ -52,11 +52,7 @@ const tabelaTaxasFaixas = [
   { limite: 13000, cotista: 0.1000, naoCotista: 0.1000, faixaNome: "Faixa 4" }
 ];
 
-const parametrosSAC = {
-  aliquotaDFI: 0.00,
-  valorManutencao: 0.00
-};
-
+const parametrosSAC = { aliquotaDFI: 0.00, valorManutencao: 0.00 };
 const tabelaMIP_SAC = [
   { limite: 2850, MIP: 0.00052 },
   { limite: 4900, MIP: 0.00058 },
@@ -68,11 +64,7 @@ function obterMIPSACPorRenda(renda) {
   return faixa ? faixa.MIP : 0.00052;
 }
 
-const parametrosPRICE = {
-  aliquotaDFI: 0.00,
-  valorManutencao: 0.00
-};
-
+const parametrosPRICE = { aliquotaDFI: 0.00, valorManutencao: 0.00 };
 const tabelaMIP_PRICE = [
   { limite: 2850, MIP: 0.0004 },
   { limite: 13000, MIP: 0.00048 }
@@ -226,38 +218,24 @@ function calcularSubsidioMCMV(dados) {
     return Math.max(0, parseFloat(subsidioBase.toFixed(2)));
 }
 
-function atualizarCamposTaxa(taxaAnual) {
-  const taxaPercentual = (taxaAnual * 100).toFixed(2).replace('.', ',');
-  const taxaFormatadaStr = `${taxaPercentual}% a.a.`;
-
-  ['sim-taxa', 'taxa-juros', 'sim-taxa-juros', 'sac-taxa', 'price-taxa'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      if (el.tagName === 'INPUT' || el.tagName === 'SELECT') {
-        el.value = taxaFormatadaStr;
-      } else {
-        el.innerText = taxaFormatadaStr;
-      }
-    }
-  });
-}
-
 function atualizarCabecalhosDinamicos(valorImovel, finSac, finPrice, taxaAnual) {
   const pctSac = valorImovel > 0 ? (finSac / valorImovel) * 100 : 0;
   const pctPrice = valorImovel > 0 ? (finPrice / valorImovel) * 100 : 0;
   const taxaPercentual = (taxaAnual * 100).toFixed(2).replace('.', ',');
 
   const elSac = document.getElementById('sac-detalhe-titulo');
-  if (elSac) {
-    elSac.innerText = `(${pctSac.toFixed(1).replace('.', ',')}% a ${taxaPercentual}% a.a.)`;
-  }
+  if (elSac) elSac.innerText = `(${pctSac.toFixed(1).replace('.', ',')}% a ${taxaPercentual}% a.a.)`;
 
   const elPrice = document.getElementById('price-detalhe-titulo');
-  if (elPrice) {
-    elPrice.innerText = `(${pctPrice.toFixed(1).replace('.', ',')}% a ${taxaPercentual}% a.a.)`;
-  }
+  if (elPrice) elPrice.innerText = `(${pctPrice.toFixed(1).replace('.', ',')}% a ${taxaPercentual}% a.a.)`;
 
-  atualizarCamposTaxa(taxaAnual);
+  ['sim-taxa', 'taxa-juros', 'sim-taxa-juros', 'sac-taxa', 'price-taxa'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (el.tagName === 'INPUT' || el.tagName === 'SELECT') el.value = `${taxaPercentual}% a.a.`;
+      else el.innerText = `${taxaPercentual}% a.a.`;
+    }
+  });
 }
 
 
@@ -294,25 +272,16 @@ function atualizarCardFinanciamento(sistema, dados) {
   if (inputAto) {
     let valorAtualAto = converterMoedaParaNumero(inputAto.value);
 
-    // Se o usuário apagou tudo, coloca o mínimo (0,2%) automaticamente
     if (valendoZeroOuVazio(inputAto.value)) {
       valorAtualAto = valorMinimoAto;
       inputAto.value = formatarMoeda(valorAtualAto);
     }
 
-    // Calcula a porcentagem para exibir no campo cinza
     let percentualAto = valorImovel > 0 ? (valorAtualAto / valorImovel) * 100 : 0;
     if (pctAto) pctAto.value = percentualAto.toFixed(2).replace(".", ",") + "%";
 
-    // REGRA DE NEGÓCIO DO SINAL
     const limiteSinal = valorImovel * 0.015;
-    let valorSinalCalculado = 0;
-    
-    if (valorAtualAto > limiteSinal) {
-      valorSinalCalculado = 0; // Zera o sinal se o Ato for maior que 1,5%
-    } else {
-      valorSinalCalculado = limiteSinal - valorAtualAto;
-    }
+    let valorSinalCalculado = (valorAtualAto > limiteSinal) ? 0 : (limiteSinal - valorAtualAto);
 
     if (spanSinal) spanSinal.innerText = formatarMoeda(valorSinalCalculado).replace('R$', '').trim();
 
@@ -324,7 +293,6 @@ function atualizarCardFinanciamento(sistema, dados) {
       spanDeParcSinal.innerText = `DE: ${formatarMoeda(valorParcelaSinal)}`;
     }
 
-    // ENTRADA LIQUIDA
     let calculoBrutoEntLiq = entradaBrutaCalculada - valorAtualAto - valorSinalCalculado;
     let valorEntradaLiqCalculado = calculoBrutoEntLiq > 0 ? calculoBrutoEntLiq : 0;
 
@@ -349,20 +317,17 @@ function validarAto(sistema) {
   let valorAto = converterMoedaParaNumero(inputAto.value);
   const valorMinimoAto = valorImovel * 0.002;
 
-  // Valida o mínimo (0,2%)
   if (valorAto < valorMinimoAto) {
     alert(`O valor mínimo para o Ato é ${formatarMoeda(valorMinimoAto)} (0,2%)`);
     inputAto.value = formatarMoeda(valorMinimoAto);
-  } 
-  // Valida o máximo (Entrada Bruta)
-  else if (valorAto > entradaBruta) {
+  } else if (valorAto > entradaBruta) {
     alert(`O valor máximo para o Ato é a Entrada Bruta: ${formatarMoeda(entradaBruta)}`);
     inputAto.value = formatarMoeda(entradaBruta);
   }
 
-  // Roda a simulação para atualizar os valores com o novo Ato
   simularFluxo();
 }
+
 function valendoZeroOuVazio(valStr) {
   if (!valStr) return true;
   let limpo = valStr.replace("R$", "").trim();
@@ -412,12 +377,7 @@ function simularFluxo() {
   let taxaNominalMensal = Math.pow(1 + taxaAnualNominal, 1/12) - 1;
 
   let aliquotaMIPSAC = obterMIPSACPorRenda(rendaBruta);
-  let aliquotaDFISAC = parametrosSAC.aliquotaDFI;
-  let valorManutencaoSAC = parametrosSAC.valorManutencao;
-
   let aliquotaMIPPrice = obterMIPPricePorRenda(rendaBruta);
-  let aliquotaDFIPrice = parametrosPRICE.aliquotaDFI;
-  let valorManutencaoPrice = parametrosPRICE.valorManutencao;
 
   const chkDependente = document.getElementById("sim-dependente") || document.getElementById("dependente");
   const temCompradorVal = chkDependente ? chkDependente.checked : false;
@@ -433,9 +393,7 @@ function simularFluxo() {
   });
 
   const inputSubsidioTela = document.getElementById("sim-subsidio-val") || document.getElementById("subsidio-val");
-  if (inputSubsidioTela) {
-      inputSubsidioTela.value = formatarMoeda(valorSubsidio);
-  }
+  if (inputSubsidioTela) inputSubsidioTela.value = formatarMoeda(valorSubsidio);
 
   const valorImovelLiquido = Math.max(0, valorImovel - valorSubsidio);
   const prestacaoMaximaRenda = rendaBruta * 0.30;
@@ -450,8 +408,7 @@ function simularFluxo() {
       let juros1 = v * taxaNominalMensal;
       let sd1 = v - amort1;
       let mip = sd1 * aliquotaMIPSAC;
-      let dfi = valorImovel * aliquotaDFISAC;
-      return amort1 + juros1 + mip + dfi + valorManutencaoSAC;
+      return amort1 + juros1 + mip + parametrosSAC.valorManutencao;
     }
 
     let minV = 0, maxV = limiteMaximoFinan;
@@ -479,8 +436,7 @@ function simularFluxo() {
       let amort1 = pmt - juros1;
       let sd1 = v - amort1; 
       let mip = sd1 * aliquotaMIPPrice;
-      let dfi = valorImovel * aliquotaDFIPrice; 
-      return pmt + mip + dfi + valorManutencaoPrice;
+      return pmt + mip + parametrosPRICE.valorManutencao;
     }
 
     let minV = 0, maxV = limiteMaximoFinan;
@@ -517,8 +473,8 @@ function simularFluxo() {
     taxaMensal: taxaNominalMensal,
     numeroParcelas: numeroParcelas,
     aliquotaMIP: aliquotaMIPSAC,
-    aliquotaDFI: aliquotaDFISAC,
-    valorManutencao: valorManutencaoSAC
+    aliquotaDFI: parametrosSAC.aliquotaDFI,
+    valorManutencao: parametrosSAC.valorManutencao
   });
 
   const entradaTotalCalculadaPrice = Math.max(0, valorImovelLiquido - valorFinanciamentoPrice);
@@ -531,8 +487,8 @@ function simularFluxo() {
     taxaMensal: taxaNominalMensal,
     numeroParcelas: numeroParcelas,
     aliquotaMIP: aliquotaMIPPrice,
-    aliquotaDFI: aliquotaDFIPrice,
-    valorManutencao: valorManutencaoPrice
+    aliquotaDFI: parametrosPRICE.aliquotaDFI,
+    valorManutencao: parametrosPRICE.valorManutencao
   });
 
   atualizarCardFinanciamento('price', {
@@ -548,16 +504,6 @@ function simularFluxo() {
 
   popularTabelaComparativa(resultadoSAC.prestacoes, resultadoPrice.prestacoes);
   atualizarCabecalhosDinamicos(valorImovel, valorFinanciamentoCalculado, valorFinanciamentoPrice, taxaAnualNominal);
-
-  return {
-    valorImovel,
-    valorFinanciamento: valorFinanciamentoCalculado,
-    valorFinanciamentoPrice: valorFinanciamentoPrice,
-    valorSubsidio,
-    entradaTotal: entradaTotalCalculada,
-    tabelaPrice: resultadoPrice.prestacoes,
-    tabelaSac: resultadoSAC.prestacoes
-  };
 }
 
 
@@ -571,10 +517,6 @@ function simularMotorSAC(dadosFinanciamento) {
   const taxaMensal = dadosFinanciamento?.taxaMensal || 0;
   const numeroParcelas = dadosFinanciamento?.numeroParcelas || 420;
   
-  const aliquotaMIP = dadosFinanciamento?.aliquotaMIP !== undefined ? dadosFinanciamento.aliquotaMIP : 0.00052;
-  const aliquotaDFI = dadosFinanciamento?.aliquotaDFI !== undefined ? dadosFinanciamento.aliquotaDFI : parametrosSAC.aliquotaDFI;
-  const valorManutencao = dadosFinanciamento?.valorManutencao !== undefined ? dadosFinanciamento.valorManutencao : parametrosSAC.valorManutencao;
-
   let prestacoesSAC = [];
   if (valorFinanciamento <= 0 || numeroParcelas <= 0) return { prestacoes: prestacoesSAC };
 
@@ -588,13 +530,13 @@ function simularMotorSAC(dadosFinanciamento) {
     saldoDevedor -= amortizacaoMes;
     if (saldoDevedor < 0) saldoDevedor = 0;
 
-    let mipMes = saldoDevedor * aliquotaMIP;
-    let dfiMes = valorImovel * aliquotaDFI; 
-    let prestacaoTotalMes = amortizacaoMes + jurosMes + mipMes + dfiMes + valorManutencao;
+    let mipMes = saldoDevedor * dadosFinanciamento.aliquotaMIP;
+    let dfiMes = valorImovel * dadosFinanciamento.aliquotaDFI; 
+    let prestacaoTotalMes = amortizacaoMes + jurosMes + mipMes + dfiMes + dadosFinanciamento.valorManutencao;
 
     prestacoesSAC.push({
       mes, saldoDevedor, juros: jurosMes, amortizacao: amortizacaoMes,
-      mip: mipMes, dfi: dfiMes, manutencao: valorManutencao, prestacaoTotal: prestacaoTotalMes
+      mip: mipMes, dfi: dfiMes, manutencao: dadosFinanciamento.valorManutencao, prestacaoTotal: prestacaoTotalMes
     });
   }
   return { prestacoes: prestacoesSAC };
@@ -606,14 +548,8 @@ function simularMotorPRICE(dadosFinanciamento) {
   const taxaMensal = dadosFinanciamento?.taxaMensal || 0;
   const numeroParcelas = dadosFinanciamento?.numeroParcelas || 420;
   
-  const aliquotaMIP = dadosFinanciamento?.aliquotaMIP !== undefined ? dadosFinanciamento.aliquotaMIP : 0.0004;
-  const aliquotaDFI = dadosFinanciamento?.aliquotaDFI !== undefined ? dadosFinanciamento.aliquotaDFI : parametrosPRICE.aliquotaDFI;
-  const valorManutencao = dadosFinanciamento?.valorManutencao !== undefined ? dadosFinanciamento.valorManutencao : parametrosPRICE.valorManutencao;
-
   let prestacoesPRICE = [];
-  let primeiraPrestacao = 0;
-
-  if (valorFinanciamento <= 0 || numeroParcelas <= 0) return { prestacoes: prestacoesPRICE, primeiraPrestacao };
+  if (valorFinanciamento <= 0 || numeroParcelas <= 0) return { prestacoes: prestacoesPRICE };
 
   let pmtBase = taxaMensal > 0 ? valorFinanciamento * (taxaMensal * Math.pow(1 + taxaMensal, numeroParcelas)) / (Math.pow(1 + taxaMensal, numeroParcelas) - 1) : valorFinanciamento / numeroParcelas;
   let saldoDevedor = valorFinanciamento;
@@ -627,214 +563,4 @@ function simularMotorPRICE(dadosFinanciamento) {
       pmtBase = amortizacaoMes + jurosMes;
     }
 
-    saldoDevedor -= amortizacaoMes;
-    if (saldoDevedor < 0) saldoDevedor = 0;
-
-    let mipMes = saldoDevedor * aliquotaMIP;
-    let dfiMes = valorImovel * aliquotaDFI; 
-    let prestacaoTotalMes = pmtBase + mipMes + dfiMes + valorManutencao;
-
-    if (mes === 1) primeiraPrestacao = prestacaoTotalMes;
-
-    prestacoesPRICE.push({
-      mes, saldoDevedor, juros: jurosMes, amortizacao: amortizacaoMes,
-      prestacaoBase: pmtBase, mip: mipMes, dfi: dfiMes, manutencao: valorManutencao, prestacaoTotal: prestacaoTotalMes
-    });
-  }
-  return { prestacoes: prestacoesPRICE, primeiraPrestacao };
-}
-
-function popularTabelaComparativa(cronogramaSac, cronogramaPrice) {
-    const tbody = document.getElementById("tabela-unificada-body");
-    if (!tbody) return;
-    
-    tbody.innerHTML = "";
-    const totalLinhas = Math.max(cronogramaSac.length, cronogramaPrice.length);
-
-    let somaSacParcelas = 0;
-    let somaPriceParcelas = 0;
-
-    for (let i = 0; i < totalLinhas; i++) {
-        let sac = cronogramaSac[i] || { mes: i + 1, prestacaoTotal: 0, amortizacao: 0, juros: 0, saldoDevedor: 0 };
-        let price = cronogramaPrice[i] || { mes: i + 1, prestacaoTotal: 0, amortizacao: 0, juros: 0, saldoDevedor: 0 };
-
-        somaSacParcelas += sac.prestacaoTotal;
-        somaPriceParcelas += price.prestacaoTotal;
-
-        let tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${sac.mes || price.mes}</td>
-            
-            <!-- SISTEMA SAC -->
-            <td style="background: #e8f5e9;">${formatarMoeda(sac.prestacaoTotal)}</td>
-            <td style="background: #e8f5e9; font-weight: 500; color: #004d40;">${formatarMoeda(sac.amortizacao)}</td>
-            <td style="background: #e8f5e9;">${formatarMoeda(sac.juros)}</td>
-            <td style="background: #e8f5e9;">${formatarMoeda(sac.saldoDevedor)}</td>
-            
-            <!-- SISTEMA PRICE -->
-            <td style="background: #f5f5f5;">${formatarMoeda(price.prestacaoTotal)}</td>
-            <td style="background: #f5f5f5; font-weight: 500; color: #004d40;">${formatarMoeda(price.amortizacao)}</td>
-            <td style="background: #f5f5f5;">${formatarMoeda(price.juros)}</td>
-            <td style="background: #f5f5f5;">${formatarMoeda(price.saldoDevedor)}</td>
-        `;
-        tbody.appendChild(tr);
-    }
-
-    // Atualiza os totais calculados nos elementos do cabeçalho
-    const elSacTotal = document.getElementById("res-sac-total-parcela");
-    const elPriceTotal = document.getElementById("res-price-total-parcela");
-
-    if (elSacTotal) elSacTotal.innerText = formatarMoeda(somaSacParcelas);
-    if (elPriceTotal) elPriceTotal.innerText = formatarMoeda(somaPriceParcelas);
-}
-
-function imprimirResultado(sistema) {
-  window.print();
-}
-
-
-// =================================================
-// 7. INICIALIZAÇÃO E EVENTOS DOM
-// =================================================
-
-document.addEventListener("DOMContentLoaded", function() {
-  inicializarMunicipios();
-
-  const selectMunicipio = document.getElementById("sim-cidade") || document.getElementById("cidade");
-  if (selectMunicipio) {
-    selectMunicipio.addEventListener("change", () => {
-      atualizarTetoCidade();
-    });
-  }
-
-  atualizarTetoCidade();
-
-  const inputDataNasc = document.getElementById("sim-data-nasc") || document.getElementById("data-nasc");
-  if (inputDataNasc) {
-    inputDataNasc.addEventListener("change", () => {
-      calcularPrazoMaximoPorIdade();
-      simularFluxo();
-    });
-    inputDataNasc.addEventListener("input", () => {
-      calcularPrazoMaximoPorIdade();
-    });
-    calcularPrazoMaximoPorIdade();
-  }
-
-  const idsInputs = [
-    "sim-val-imovel", "sim-imovel", "imovel",
-    "sim-val-avaliacao", "sim-avaliacao", "avaliacao",
-    "sim-renda", "renda", "sim-renda-bruta",
-    "sim-fgts", "fgts",
-    "sim-bom-pagador", "bom-pagador",
-    "sim-recursos", "recursos",
-    "sim-prazo-finan", "prazo-finan", "prazo"
-  ];
-
-  idsInputs.forEach(id => {
-    const el = document.getElementById(id);
-    if (el && !el.dataset.escutandoInput) {
-      el.dataset.escutandoInput = "true";
-      el.addEventListener("input", () => simularFluxo());
-      el.addEventListener("change", () => simularFluxo());
-    }
-  });
-
-  const radiosRedutor = document.querySelectorAll('input[name="opt-redutor"]');
-  radiosRedutor.forEach(radio => {
-    radio.addEventListener("change", () => simularFluxo());
-  });
-
-  const chkDependente = document.getElementById("sim-dependente") || document.getElementById("dependente");
-  if (chkDependente) {
-    chkDependente.addEventListener("change", () => simularFluxo());
-  }
-
-  const radiosBase = document.querySelectorAll('input[name="base-financiamento"]');
-  radiosBase.forEach(radio => {
-    radio.addEventListener("change", () => simularFluxo());
-  });
-
-  simularFluxo();
-});
-
-
-
-// =================================================
-// GERADOR DE TEXTO PARA WHATSAPP
-// =================================================
-function gerarTextoWhatsApp(sistema) {
-  const residencial = document.getElementById('whats-residencial')?.value || "Residencial";
-  const aptoBloco = document.getElementById('whats-apto')?.value || "Apto/Bloco não informado";
-  const entrega = document.getElementById('whats-entrega')?.value || "Data não informada";
-  
-  const nomeCorretor = document.getElementById('whats-nome-corretor')?.value || "Não informado";
-  const creci = document.getElementById('whats-creci')?.value || "Não informado";
-  const nomeCliente = document.getElementById('whats-nome-cliente')?.value || "Não informado";
-  const dataNasc = document.getElementById('whats-data-nasc')?.value;
-  
-  let dataNascFormatada = "Não informada";
-  if (dataNasc) {
-      const partes = dataNasc.split('-');
-      if (partes.length === 3) {
-          dataNascFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
-      }
-  }
-
-  const renda = document.getElementById('sim-renda').value || "R$ 0,00";
-  const fgts = document.getElementById('sim-fgts').value || "R$ 0,00";
-  const dependentes = document.getElementById('sim-dependente').checked ? "Sim" : "Não";
-  const valorImovel = document.getElementById('sim-val-imovel').value || "R$ 0,00";
-  
-  // Pega os valores que já estão calculados nas caixas
-  const financiamento = document.getElementById(`${sistema}-val-financiamento`).innerText;
-  const entradaTotal = document.getElementById(`${sistema}-val-entrada-total`).innerText;
-  const bomPagador = document.getElementById(`${sistema}-val-bom-pagador`).innerText;
-  const qtdParcelas = document.getElementById('sim-prazo-finan').value;
-  
-  // Pega o valor da 1ª parcela direto da tabela (linha 0, coluna específica do sistema)
-  let valorParcela = "0,00";
-  const tabela = document.getElementById("tabela-unificada-body");
-  if (tabela && tabela.rows.length > 0) {
-    if (sistema === 'sac') {
-      valorParcela = tabela.rows[0].cells[1].innerText.replace('R$', '').trim();
-    } else {
-      valorParcela = tabela.rows[0].cells[5].innerText.replace('R$', '').trim();
-    }
-  }
-
-  const sistemaTexto = sistema === 'sac' ? 'SAC (TR)' : 'PRICE (TR)';
-
-  const texto = `
-*${residencial} - MRV*
-Simulação aproximada de valores
-*${sistemaTexto}*
-${aptoBloco}
-Previsão de entrega em ${entrega}
-
-*Data da simulação:* ${new Date().toLocaleDateString('pt-BR')}
-*Corretor:* ${nomeCorretor} - CRECI ${creci}
-*Cliente:* ${nomeCliente}
-*Data nascimento:* ${dataNascFormatada}
-*Renda Bruta familiar:* ${renda}
-*FGTS:* ${fgts}
-*Dependentes:* ${dependentes}
-
-*Valor do imóvel:* ${valorImovel}
-
-*Financiamento:* R$ ${financiamento}
-*Quantidade de parcelas:* ${qtdParcelas}
-*Valor da 1ª parcela:* R$ ${valorParcela}
-
-*Entrada total:* R$ ${entradaTotal}
-*FGTS:* ${fgts}
-*Bom pagador:* R$ ${bomPagador}
-  `.trim();
-
-  navigator.clipboard.writeText(texto).then(() => {
-    alert(`Simulação ${sistemaTexto} copiada com sucesso! Cole no WhatsApp do cliente.`);
-  }).catch(err => {
-    console.error('Erro ao copiar: ', err);
-    alert("Erro ao copiar o texto. Verifique as permissões do navegador.");
-  });
-}
+    sal
