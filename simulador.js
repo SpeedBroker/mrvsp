@@ -10,7 +10,7 @@
 
 const tabelaSubsidio = [
   { rendaMax: 1000.00, valor: 55000.00 },
-  { rendaMax: 1200.00, valor: 55000.00 },
+  { rendaMax: 1200.00, valor: 55000.00 },ff
   { rendaMax: 1400.00, valor: 55000.00 },
   { rendaMax: 1600.00, valor: 55000.00 },
   { rendaMax: 1800.00, valor: 55000.00 },
@@ -281,8 +281,6 @@ function atualizarCardFinanciamento(sistema, dados) {
   setElText(`${sistema}-val-fgts`, valorFgts);
   setElText(`${sistema}-val-bom-pagador`, valorBomPagador);
   setElText(`${sistema}-val-entrada-bruta`, entradaBrutaCalculada);
-  setElText(`${sistema}-val-recursos`, recPropriosCalculado);
-  setElText(`${sistema}-val-saldo-rec`, saldoRecursosCalculado);
 
   const inputAto = document.getElementById(`${sistema}-input-ato`);
   const pctAto = document.getElementById(`${sistema}-pct-ato`);
@@ -296,24 +294,15 @@ function atualizarCardFinanciamento(sistema, dados) {
   if (inputAto) {
     let valorAtualAto = converterMoedaParaNumero(inputAto.value);
 
-    // Lógica inteligente: se o usuário apagou tudo, coloca o mínimo (0,2%)
+    // Se o usuário apagou tudo, coloca o mínimo (0,2%) automaticamente
     if (valendoZeroOuVazio(inputAto.value)) {
       valorAtualAto = valorMinimoAto;
       inputAto.value = formatarMoeda(valorAtualAto);
     }
 
-    // Se o valor digitado for menor que o mínimo, não bloqueia a digitação, mas avisa
-    if (valorAtualAto < valorMinimoAto) {
-      valorAtualAto = valorMinimoAto;
-    }
-
-    // Se o valor digitado for maior que a entrada bruta, limita ao máximo
-    if (valorAtualAto > entradaBrutaCalculada) {
-      valorAtualAto = entradaBrutaCalculada;
-    }
-
+    // Calcula a porcentagem para exibir no campo cinza
     let percentualAto = valorImovel > 0 ? (valorAtualAto / valorImovel) * 100 : 0;
-    if (pctAto) pctAto.value = percentualAto.toFixed(1).replace(".", ",") + "%";
+    if (pctAto) pctAto.value = percentualAto.toFixed(2).replace(".", ",") + "%";
 
     // REGRA DE NEGÓCIO DO SINAL
     const limiteSinal = valorImovel * 0.015;
@@ -325,9 +314,7 @@ function atualizarCardFinanciamento(sistema, dados) {
       valorSinalCalculado = limiteSinal - valorAtualAto;
     }
 
-    if (spanSinal) {
-      spanSinal.innerText = formatarMoeda(valorSinalCalculado).replace('R$', '').trim();
-    }
+    if (spanSinal) spanSinal.innerText = formatarMoeda(valorSinalCalculado).replace('R$', '').trim();
 
     if (spanDeParcSinal) {
       let qtdParcelasSinal = parseInt(inputQtdParcSinal?.value) || 5;
@@ -341,9 +328,7 @@ function atualizarCardFinanciamento(sistema, dados) {
     let calculoBrutoEntLiq = entradaBrutaCalculada - valorAtualAto - valorSinalCalculado;
     let valorEntradaLiqCalculado = calculoBrutoEntLiq > 0 ? calculoBrutoEntLiq : 0;
 
-    if (spanEntradaLiq) {
-      spanEntradaLiq.innerText = formatarMoeda(valorEntradaLiqCalculado).replace('R$', '').trim();
-    }
+    if (spanEntradaLiq) spanEntradaLiq.innerText = formatarMoeda(valorEntradaLiqCalculado).replace('R$', '').trim();
 
     if (spanDeParcLiq) {
       let qtdParcelasLiq = parseInt(inputQtdParcLiq?.value) || 30;
@@ -351,29 +336,33 @@ function atualizarCardFinanciamento(sistema, dados) {
       let valorParcelaLiq = (valorEntradaLiqCalculado > 0) ? (valorEntradaLiqCalculado / qtdParcelasLiq) : 0;
       spanDeParcLiq.innerText = `DE: ${formatarMoeda(valorParcelaLiq)}`;
     }
-
-    // Configura o evento de validação apenas quando o usuário sair do campo
-    if (!inputAto.dataset.validado) {
-      inputAto.dataset.validado = "true";
-      inputAto.addEventListener('blur', () => {
-        let val = converterMoedaParaNumero(inputAto.value);
-        if (val > 0 && val < valorMinimoAto) {
-          alert("O valor do Ato não pode ser inferior a 0,2% do valor do imóvel. O valor foi ajustado para o mínimo de 0,2%.");
-          inputAto.value = formatarMoeda(valorMinimoAto);
-        } else if (val > entradaBrutaCalculada) {
-          alert("O valor do Ato não pode ser maior que a Entrada Bruta. O valor foi ajustado para o máximo.");
-          inputAto.value = formatarMoeda(entradaBrutaCalculada);
-        }
-        simularFluxo();
-      });
-      
-      inputAto.addEventListener('input', () => {
-        simularFluxo();
-      });
-    }
   }
 }
 
+// Função que valida o Ato APENAS quando o usuário sai do campo
+function validarAto(sistema) {
+  const inputAto = document.getElementById(`${sistema}-input-ato`);
+  if (!inputAto) return;
+
+  const valorImovel = converterMoedaParaNumero(document.getElementById('sim-val-imovel').value);
+  const entradaBruta = converterMoedaParaNumero(document.getElementById(`${sistema}-val-entrada-bruta`).innerText);
+  let valorAto = converterMoedaParaNumero(inputAto.value);
+  const valorMinimoAto = valorImovel * 0.002;
+
+  // Valida o mínimo (0,2%)
+  if (valorAto < valorMinimoAto) {
+    alert(`O valor mínimo para o Ato é ${formatarMoeda(valorMinimoAto)} (0,2%)`);
+    inputAto.value = formatarMoeda(valorMinimoAto);
+  } 
+  // Valida o máximo (Entrada Bruta)
+  else if (valorAto > entradaBruta) {
+    alert(`O valor máximo para o Ato é a Entrada Bruta: ${formatarMoeda(entradaBruta)}`);
+    inputAto.value = formatarMoeda(entradaBruta);
+  }
+
+  // Roda a simulação para atualizar os valores com o novo Ato
+  simularFluxo();
+}
 function valendoZeroOuVazio(valStr) {
   if (!valStr) return true;
   let limpo = valStr.replace("R$", "").trim();
