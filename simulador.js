@@ -31,8 +31,8 @@ const tabelaSubsidio = [
 
 const tabelaCidades = [
   { municipio: "São Paulo", populacao: 11500000, teto: 275000 },
-  { municipio: "Guarulhos", populacao: 1368784, teto: 275000 },
-  { municipio: "Campinas", populacao: 1260000, teto: 275000 },
+  { municipio: "Guarulhos", populacao: 1368784, teto: 27000 },
+  { municipio: "Campinas", populacao: 1260000, teto: 27000 },
   { municipio: "Osasco", populacao: 766039, teto: 275000 },
   { municipio: "Jundiaí", populacao: 467978, teto: 235000 },
   { municipio: "Itaquaquecetuba", populacao: 389513, teto: 235000 },
@@ -310,7 +310,7 @@ function atualizarCardFinanciamento(sistema, dados) {
     if (spanDeParcSinal) {
       let qtdParcelasSinal = parseInt(inputQtdParcSinal?.value) || 5;
       if (qtdParcelasSinal < 1) qtdParcelasSinal = 1;
-      if (qtdParcelasSinal > 5) qtdParcelasSinal = 5;
+      if (qtdParcelasSinal > 4) qtdParcelasSinal = 4;
       let valorParcelaSinal = (valorSinalCalculado > 0) ? (valorSinalCalculado / qtdParcelasSinal) : 0;
       spanDeParcSinal.innerText = `DE: ${formatarMoeda(valorParcelaSinal)}`;
     }
